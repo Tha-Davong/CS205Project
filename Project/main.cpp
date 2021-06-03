@@ -11,7 +11,7 @@ int main() {
     m1.set(4, b);
     Matrix<int> c = m.Convolve(m1);
 
-    //ninja ninja
+   
     c.print();
     return 0;
 }
