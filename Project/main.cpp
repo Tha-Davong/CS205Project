@@ -10,8 +10,7 @@ int main() {
     m.set(9, a);
     m1.set(4, b);
     Matrix<int> c = m.Convolve(m1);
-
-   
+    //snow 
     c.print();
     return 0;
 }
