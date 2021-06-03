@@ -39,7 +39,7 @@ public:
             std::cout << std::endl;
         }
     }
-    
+    //return pointer to an entry
     T& get(int row, int col) {
         return mat_ptr[row * this->col + col];
     }
@@ -283,6 +283,29 @@ public:
             }
             return SumMatrix;
         }
+
+    }
+
+    Matrix<T> Convolve(Matrix<T> kernel) {
+        int row = this->row - kernel.row + 1;
+        int col = this->col - kernel.col + 1;
+
+        Matrix<T> ans(row, col);
+
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
+                T sum = T();
+                for (int ii = 0; ii < kernel.row; ++ii) {
+                    for (int jj = 0; jj < kernel.col; ++jj) {
+                        sum += kernel.get(ii,jj) * get(i + ii, j + jj);
+                    }
+                }
+
+                ans.get(i, j) = sum;
+                
+            }
+        }
+        return ans;
 
     }
 

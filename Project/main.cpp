@@ -4,16 +4,13 @@
 using namespace std;
 
 int main() {
-    int a[25];
-    for (int i = 0; i < 25; ++i) {
-        a[i] = i + 1;
-    }
-    Matrix<int> m(4, 4);
-    m.set(16, a);
-    //m.print();
-    m.print();
-    Matrix<int> m1 = m.Slice(0, 3, 2, 0, 3, 2);
-    m1.print();
-    cout << "here" << endl;
+    Matrix<int> m(3, 3), m1(2, 2);
+    int a[] = { 1,2,3,4,5,6,7,8,9 };
+    int b[] = { 1,2,3,4 };
+    m.set(9, a);
+    m1.set(4, b);
+    Matrix<int> c = m.Convolve(m1);
+    //snow 
+    c.print();
     return 0;
 }
