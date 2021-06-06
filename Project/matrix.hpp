@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include<string>  
 
 template<typename T>
 class Matrix
@@ -13,6 +14,58 @@ private:
     int col;
     int size;
     T* mat_ptr;
+
+    Matrix<T> ReturnSlice(std::vector<int> row, std::vector<int> col) {
+        Matrix<T> SliceRes(row.size(), col.size());
+
+        for (int i = 0; i < row.size(); ++i) {
+            int r = row[i];
+            for (int j = 0; j < col.size(); ++j) {
+                int c = col[j];
+                SliceRes.get(i, j) = get(r, c);
+            }
+        }
+
+        return SliceRes;
+
+    }
+
+    void SliceIndex(std::vector<int>& slice, int start, int end, int step) {
+        if (step < 0) {
+            int tmp = start;
+            start = end;
+            end = tmp;
+        }
+        int i = start;
+
+        while ((step > 0 && i >= start && i <= end) || (step < 0 && i >= end && i <= start)) {
+            slice.push_back(i);
+            i += step;
+        }
+    }
+
+    void ValidRowIndex(int row) {
+        if (row < 0 || row > this->row - 1) {
+            throw std::range_error(std::to_string(row) + " not in range of 0 and " + std::to_string(this->row - 1));
+        }
+    }
+
+    void ValidColumnIndex(int col) {
+        if (col < 0 || col > this->col - 1) {
+            throw std::range_error(std::to_string(col) + " not in range of 0 and " + std::to_string(this->col - 1));
+        }
+    }
+
+    void CheckAxis(int axis) {
+        if (axis != 1 && axis != 0) {
+            throw std::invalid_argument("axis must be 1 (horizontal) or 0 (vertical)");
+        }
+    }
+
+    void ValidIndex(int row, int col) {
+        ValidRowIndex(row);
+        ValidColumnIndex(col);
+    }
 public:
     Matrix(int row, int col) {
         this->row = row;
@@ -39,12 +92,18 @@ public:
             std::cout << std::endl;
         }
     }
+    
+    
     //return pointer to an entry
     T& get(int row, int col) {
+        ValidIndex(row, col);
         return mat_ptr[row * this->col + col];
     }
 
     Matrix<T>& set(int len, T* m) {
+        if (len != this->size) {
+            throw std::length_error("Number of element in array must be the same with the size of matrix");
+        }
         for (int i = 0; i < len; ++i) {
             mat_ptr[i] = *m;
             ++m;
@@ -54,29 +113,29 @@ public:
 
     void reshape(int row, int col) {
         if (row * col != size) {
-            //size error
+            throw std::length_error("Cannot reshape because the two matrix have different shape");
         }
         this->row = row;
         this->col = col;
     }
 
-    void SliceIndex(std::vector<int> &slice, int start, int end, int step) {
-        if (step < 0) {
-            int tmp = start;
-            start = end;
-            end = tmp;
-        }
-        int i = start;
-       
-        while ((step > 0 && i >= start && i <= end) || (step < 0 && i >= end && i <= start)) {
-            slice.push_back(i);
-            i += step;
-        }
-    }
+    
     
     Matrix<T> Slice(int rowStart, int rowEnd, int rowStep,
                     int colStart, int colEnd, int colStep) 
-    {
+    {   
+        if (rowStart > rowEnd) {
+            throw std::invalid_argument("slice must start from smaller row to bigger row (use negative step to slice backward)");
+        }
+
+        if (colStart > colEnd) {
+            throw std::invalid_argument("slice must start from smaller column to bigger row (use negative step to slice backward)");
+        }
+        ValidRowIndex(rowStart);
+        ValidRowIndex(rowEnd);
+        ValidColumnIndex(colStart);
+        ValidColumnIndex(colEnd);
+
         std::vector<int> rowIndex; 
         SliceIndex(rowIndex, rowStart, rowEnd, rowStep);
         std::vector<int> colIndex;
@@ -86,20 +145,7 @@ public:
 
     }
 
-    Matrix<T> ReturnSlice(std::vector<int> row, std::vector<int> col) {
-        Matrix<T> SliceRes(row.size(), col.size());
-
-        for (int i = 0; i < row.size(); ++i) {
-            int r = row[i];
-            for (int j = 0; j < col.size(); ++j) {
-                int c = col[j];
-                SliceRes.get(i, j) = get(r, c);
-            }
-        }
-
-        return SliceRes;
-
-    }
+    
     T Max(){
         T maxVal = mat_ptr[0];
 
@@ -112,6 +158,7 @@ public:
     }
 
     Matrix<T> Max(int axis) {
+        CheckAxis(axis);
         
         if (axis == 0) {
             Matrix<T> maxMatrix(1, col);
@@ -159,6 +206,7 @@ public:
     }
 
     Matrix<T> Min(int axis) {
+        CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> minMatrix(1, col);
@@ -205,6 +253,7 @@ public:
     }
 
     Matrix<T> Avg(int axis) {
+        CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> AvgMatrix(1, col);
@@ -251,6 +300,7 @@ public:
     }
 
     Matrix<T> Sum(int axis) {
+        CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> SumMatrix(1, col);
@@ -287,6 +337,9 @@ public:
     }
 
     Matrix<T> Convolve(Matrix<T> kernel) {
+        if (this->row < kernel.row || this->col < kernel.col) {
+            throw std::length_error("Dimension of kernel is bigger than the left matrix");
+        }
         int row = this->row - kernel.row + 1;
         int col = this->col - kernel.col + 1;
 
