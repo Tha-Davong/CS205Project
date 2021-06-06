@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <omp.h>
 
 template<typename T>
 class Matrix
@@ -286,6 +287,277 @@ public:
 
     }
 
+    //get entry
+    
+    const T& getElement(int i) const 
+    {
+        return mat_ptr[i];
+    }
+
+    const T& getElement(int i, int j) const
+    {
+        return mat_ptr[i*row + j]
+    }
+
+    static void checkIfMatricesHaveSameDim(const Matrix<T> &x, const Matrix<T> &y) 
+    {
+        if (x.getCols() != y.getCols() || x.getRows() != y.getRows()) 
+        {
+            throw std::length_error("The matrices don't have the same shape!");
+        }
+    }
+
+    static void checkIfCompatible(const Matrix<T> %x, const Matrix<T> &y)
+    {
+        if (x.col != y.row)
+        {
+            throw std::length_error("The matrices are not compatible!");
+        }
+    }
+
+
+
+    //additon
+    friend Matrix<T> operator+(const Matrix<T> &x, const Matrix<T> &y)
+    {
+        checkIfMatricesHaveSameDim(x, y);
+        Matrix<T> sum(x.row, x.col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0; i < x.size; i++)
+        {
+            sum.getElement(i) = x.getElement(i) + getElement[i];
+        }
+
+        return sum;
+    }
+    //subtraction
+    friend Matrix<T> operator-(const Matrix<T> &x, const Matrix<T> &y)
+    {
+        checkIfMatricesHaveSameDim(x, y);
+        Matrix<T> difference(x.row, x.col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0; i < x.size; i++)
+        
+        {
+            difference.getElement(i) = x.getElement(i) - y.getElement(i);
+        }
+
+        return difference;
+    }
+    //scalar multiplication
+    friend Matrix<T> operator*(const Matrix<T> &x, const T &scalar) 
+    {
+        Matrix<T> product(x.row, x.col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0; i < x.size; i++)
+        {
+            product.getElement(i) = x.getElement(i) * scalar;
+        }
+
+        return product;
+    }
+
+    friend Matrix<T> operator*(const T &scalar, const Matrix<T> &x) 
+    {
+        Matrix<T> product(x.row, x.col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0; i < x.size; i++)
+        {
+            product.getElement(i) = scalar * x.getElement(i);
+        }
+
+        return product;
+    }
+    //scalar division
+    friend Matrix<T> operator/(const Matrix<T> &x, const T &scalar) 
+    {
+        Matrix<T> quotient(x.row, x.col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0 ; i < x.size; i++)
+        {
+            quotient.getElement(i) = x.getElement(i) / scalar;
+        }
+    }
+    //transposition
+    Matrix<T> transpose() const
+    {
+        Matrix<T> transposed(col, row);
+        
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+            {
+                transposed.getElement(j, i) = getElement(i, j)
+            }
+        }
+
+        reutrn transposed;
+    }
+
+    //conjugation / tranpose conjugate?
+    Matrix<Complex> conjugate() const
+    {
+        Matrix<Complex> conjugated(row, col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0; i < size; i++)
+        {
+            Complex &complex = getElement(i);
+            conjugated.getElement(i) = new Complex(complex.getReal(), -complex.getImag()));   
+        }
+
+        return conjugated;
+    }
+    //element-wise multiplication
+    static Matrix<T> ele_mul(const Matrix<T> &x, const Matrix<T> &y)
+    {
+        checkIfMatricesHaveSameDim(x, y);
+        Matrix<T> product(x.row, x.col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for
+        for (int i = 0; i < Math.min(x.size, y.size); i++)
+            {
+                product.getElement(i) = x.getElement(i) * y.getElement(i);
+            }
+        }
+    }
+    //matiix-matrix multiplication
+    static Matrix<T> mat_mul(const Matrix<T> &x, const Matrix<T> &y)
+    {
+        checkIfCompatible(x, y);
+        Matrix<T> product(x.row, y.col);
+
+        omp_set_num_threads(4);
+        #pragma omp parallel for private(i, j, k) shared (x, y)
+        for (int i = 0; i < x.row; i++)
+        {
+            for (int j = 0; j < y.col; j++)
+            {
+                product.get(i, j) = 0;
+                for (int k = 0; k < x.col; k++)
+                {
+                    product.get(i, j) += x.get(i, k) * y.get(k, j);
+                }
+            }
+        }
+
+        return product;
+    }
+    //matrix-vector multiplication should be the same as matrix-matrix multiplication, why need seperate
+    friend Matrix<T> vec_mul(const M)
+    {
+
+    }
+    //dot product
+    friend T dot_product(const Vector<T> &x, const Vector<T> &y)
+    {
+        
+    }
+    //computing eigenvalues
+    //determinant
+    static void checkIfSquare(const Matrix<T> x) const
+    {
+        if (x.row != x.col)
+            throw new std::length_error("Matrice is not square!");
+    }
+
+    static T determinant(Maatrix<T> &x, int n)
+    {
+        checkIfSquare(x);
+        T determinant = 0;
+
+        if (row == 1)
+            return x.getElement(0);
+        else
+        {
+            for (int j = 0; j < n ; j++)
+            {
+                determinant += (((i+j) % 2 == 0) ? 1 : -1) * x.getElement(0, j) * determinant(cofactor(x, 0, j, n), n-1)
+            }
+        }
+    }
+
+    static Matrix<T> cofactor(Matrix<T> &x, int row, int col, int n)
+    {
+        Matrix<T> cofact(n-1, n-1);
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                if (i != row && j != col)
+                {
+                    if (j < col && i < row)
+                        cofact.getElement(i, j) = x.getElement(i, j);
+                    else if (j < col && i > row)
+                            cofact.getElement(i-1, j) = x.getElement(i, j);
+                    if (j > col && i < row)
+                        cofact.getElement(i, j-1) = x.getElement(i, j);
+                    else if (j > col && i > row)
+                        confact.getElement(i-1, j-1) = x.getElement(i, j);
+
+                }
+            }
+        }
+        return cofact;
+    }
+    //get adjoint
+    static Matrix<T> adjoint(Matrix<T> &x, int n)
+    {
+        checkIfSquare(x);
+        Matrix<T> adj(n, n);
+
+        if (n == 1 && x.getElement(0) != 0)
+        {
+            adj.get(0) = 1;
+            return adj;
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j ++)
+            {
+                adj.getElement(j, i) = determinant(confactor(x, i, j), n-1);
+            }
+        }
+
+        return adj;
+
+    }
+    
+    static Matrix<T> inverse(Matrix<T> &x, int n)
+    {
+        checkIfSquare(x);
+        Matrix<T> inv(n, n);
+        T det = determinant(x, n);
+        Matrix<T> adj(n, n);
+
+        if (det == 0)
+        {
+            throw new std::length_error("Matix is singular. It has no inverse!");
+        }
+
+        adj = adjoint(x, n);       
+
+        inv = adj / det;
+
+        return inv;
+
+    }
     
 };
 
