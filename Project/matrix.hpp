@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <vector>
 
+#include "complex.h"
+
 template<typename T>
 class Matrix
 {
@@ -13,6 +15,7 @@ private:
     int col;
     int size;
     T* mat_ptr;
+    std::vector<std::vector<T>> matrix;
 public:
     Matrix(int row, int col) {
         this->row = row;
@@ -20,6 +23,7 @@ public:
         size = row * col;
         mat_ptr = new T[row * col];
     }
+
 
     Matrix() {
         
@@ -30,6 +34,7 @@ public:
 
     }
 
+
     void print() {
         int index = 0;
         for (int i = 0; i < row; ++i) {
@@ -38,6 +43,12 @@ public:
             }
             std::cout << std::endl;
         }
+    }
+    int getRowSize() {
+        return row;
+    }
+    int getColumnSize() {
+        return col;
     }
     
     T& get(int row, int col) {
