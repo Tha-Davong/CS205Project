@@ -5,6 +5,9 @@
 #include <iomanip>
 #include <vector>
 #include <omp.h>
+#include<string>  
+
+#include "complex.h"
 
 template<typename T> 
 class Vector
@@ -73,78 +76,7 @@ private:
     int col;
     int size;
     T* mat_ptr;
-public:
-    Matrix(int row, int col) {
-        this->row = row;
-        this->col = col;
-        size = row * col;
-        mat_ptr = new T[row * col];
-    }
 
-    Matrix() {
-        
-    }
-
-    
-    ~Matrix() {
-
-    }
-
-    void print() {
-        int index = 0;
-        for (int i = 0; i < row; ++i) {
-            for (int j = 0; j < col; ++j) {
-                std::cout << std::right << std::setw(7) << mat_ptr[index++];
-            }
-            std::cout << std::endl;
-        }
-    }
-    
-    T& get(int row, int col) {
-        return mat_ptr[row * this->col + col];
-    }
-
-    Matrix<T>& set(int len, T* m) {
-        for (int i = 0; i < len; ++i) {
-            mat_ptr[i] = *m;
-            ++m;
-        }
-        return *this;
-    }
-
-    void reshape(int row, int col) {
-        if (row * col != size) {
-            //size error
-        }
-        this->row = row;
-        this->col = col;
-    }
-
-    void SliceIndex(std::vector<int> &slice, int start, int end, int step) {
-        if (step < 0) {
-            int tmp = start;
-            start = end;
-            end = tmp;
-        }
-        int i = start;
-       
-        while ((step > 0 && i >= start && i <= end) || (step < 0 && i >= end && i <= start)) {
-            slice.push_back(i);
-            i += step;
-        }
-    }
-    
-    Matrix<T> Slice(int rowStart, int rowEnd, int rowStep,
-                    int colStart, int colEnd, int colStep) 
-    {
-        std::vector<int> rowIndex; 
-        SliceIndex(rowIndex, rowStart, rowEnd, rowStep);
-        std::vector<int> colIndex;
-        SliceIndex(colIndex, colStart, colEnd, colStep);
-
-        return ReturnSlice(rowIndex, colIndex);
-
-    }
 
     Matrix<T> ReturnSlice(std::vector<int> row, std::vector<int> col) {
         Matrix<T> SliceRes(row.size(), col.size());
@@ -160,6 +92,131 @@ public:
         return SliceRes;
 
     }
+
+    void SliceIndex(std::vector<int>& slice, int start, int end, int step) {
+        if (step < 0) {
+            int tmp = start;
+            start = end;
+            end = tmp;
+        }
+        int i = start;
+
+        while ((step > 0 && i >= start && i <= end) || (step < 0 && i >= end && i <= start)) {
+            slice.push_back(i);
+            i += step;
+        }
+    }
+
+    void ValidRowIndex(int row) {
+        if (row < 0 || row > this->row - 1) {
+            throw std::range_error(std::to_string(row) + " not in range of 0 and " + std::to_string(this->row - 1));
+        }
+    }
+
+    void ValidColumnIndex(int col) {
+        if (col < 0 || col > this->col - 1) {
+            throw std::range_error(std::to_string(col) + " not in range of 0 and " + std::to_string(this->col - 1));
+        }
+    }
+
+    void CheckAxis(int axis) {
+        if (axis != 1 && axis != 0) {
+            throw std::invalid_argument("axis must be 1 (horizontal) or 0 (vertical)");
+        }
+    }
+
+    void ValidIndex(int row, int col) {
+        ValidRowIndex(row);
+        ValidColumnIndex(col);
+    }
+public:
+    Matrix(int row, int col) {
+        this->row = row;
+        this->col = col;
+        size = row * col;
+        mat_ptr = new T[row * col];
+    }
+
+
+    Matrix() {
+        
+    }
+
+    
+    ~Matrix() {
+
+    }
+
+
+    void print() {
+        int index = 0;
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
+                std::cout << std::right << std::setw(7) << mat_ptr[index++];
+            }
+            std::cout << std::endl;
+        }
+    }
+    int getRowSize() {
+        return row;
+    }
+    int getColumnSize() {
+        return col;
+    }
+    
+    
+    //return pointer to an entry
+    T& get(int row, int col) {
+        ValidIndex(row, col);
+        return mat_ptr[row * this->col + col];
+    }
+
+    Matrix<T>& set(int len, T* m) {
+        if (len != this->size) {
+            throw std::length_error("Number of element in array must be the same with the size of matrix");
+        }
+        for (int i = 0; i < len; ++i) {
+            mat_ptr[i] = *m;
+            ++m;
+        }
+        return *this;
+    }
+
+    void reshape(int row, int col) {
+        if (row * col != size) {
+            throw std::length_error("Cannot reshape because the two matrix have different shape");
+        }
+        this->row = row;
+        this->col = col;
+    }
+
+    
+    
+    Matrix<T> Slice(int rowStart, int rowEnd, int rowStep,
+                    int colStart, int colEnd, int colStep) 
+    {   
+        if (rowStart > rowEnd) {
+            throw std::invalid_argument("slice must start from smaller row to bigger row (use negative step to slice backward)");
+        }
+
+        if (colStart > colEnd) {
+            throw std::invalid_argument("slice must start from smaller column to bigger row (use negative step to slice backward)");
+        }
+        ValidRowIndex(rowStart);
+        ValidRowIndex(rowEnd);
+        ValidColumnIndex(colStart);
+        ValidColumnIndex(colEnd);
+
+        std::vector<int> rowIndex; 
+        SliceIndex(rowIndex, rowStart, rowEnd, rowStep);
+        std::vector<int> colIndex;
+        SliceIndex(colIndex, colStart, colEnd, colStep);
+
+        return ReturnSlice(rowIndex, colIndex);
+
+    }
+
+    
     T Max(){
         T maxVal = mat_ptr[0];
 
@@ -172,6 +229,7 @@ public:
     }
 
     Matrix<T> Max(int axis) {
+        CheckAxis(axis);
         
         if (axis == 0) {
             Matrix<T> maxMatrix(1, col);
@@ -219,6 +277,7 @@ public:
     }
 
     Matrix<T> Min(int axis) {
+        CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> minMatrix(1, col);
@@ -265,6 +324,7 @@ public:
     }
 
     Matrix<T> Avg(int axis) {
+        CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> AvgMatrix(1, col);
@@ -311,6 +371,7 @@ public:
     }
 
     Matrix<T> Sum(int axis) {
+        CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> SumMatrix(1, col);
@@ -346,12 +407,33 @@ public:
 
     }
 
-    T& get(int row, int col) {
-        ValidIndex(row, col);
-        return mat_ptr[row * this->col + col];
+    Matrix<T> Convolve(Matrix<T> kernel) {
+        if (this->row < kernel.row || this->col < kernel.col) {
+            throw std::length_error("Dimension of kernel is bigger than the left matrix");
+        }
+        int row = this->row - kernel.row + 1;
+        int col = this->col - kernel.col + 1;
+
+        Matrix<T> ans(row, col);
+
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
+                T sum = T();
+                for (int ii = 0; ii < kernel.row; ++ii) {
+                    for (int jj = 0; jj < kernel.col; ++jj) {
+                        sum += kernel.get(ii,jj) * get(i + ii, j + jj);
+                    }
+                }
+
+                ans.get(i, j) = sum;
+                
+            }
+        }
+        return ans;
+
     }
 
-    static void HaveSameDim(const Matrix<T> &X, const Matrix<T> &Y) const
+    static void HaveSameDim(const Matrix<T> &X, const Matrix<T> &Y)
     {
         if (X.getCol() != Y.getCol() || X.getRow() != Y.getRow()) 
         {
@@ -359,7 +441,7 @@ public:
         }
     }
 
-    static void IsCompatible(const Matrix<T> %X, const Matrix<T> &Y) const
+    static void IsCompatible(const Matrix<T> &X, const Matrix<T> &Y) 
     {
         if (X.col != Y.row)
         {
@@ -367,7 +449,7 @@ public:
         }
     }
 
-    static void IsSquare(const Matrix<T> &X) const
+    static void IsSquare(const Matrix<T> &X) 
     {
         if (x.row != x.col)
             throw new std::invalid_argument("Matrice is not square!");
@@ -406,89 +488,87 @@ public:
     //still need to fix this one
     static Matrix<T> IsCloseToUpperRectangular(const Matrix<T> &X)
     {
-    /* The current matrix must have at least as many columns as rows, but note that we don't
-        actually require it to be square since we assume that the user may have combined a
-        square matrix with a vector. They would do this, for example, if they were trying to 
-        solve a system of linear equations. */
-    if (m_nCols < m_nRows)
-        throw std::invalid_argument("The matrix must have at least as many columns as rows.");
+        /* The current matrix must have at least as many columns as rows, but note that we don't
+            actually require it to be square since we assume that the user may have combined a
+            square matrix with a vector. They would do this, for example, if they were trying to 
+            solve a system of linear equations. */
+        if (m_nCols < m_nRows)
+            throw std::invalid_argument("The matrix must have at least as many columns as rows.");
 
-    /* Make a copy of the matrix data before we start. We do this because the procedure below
-        will make changes to the stored matrix data (it operates 'in place') and we don't want
-        this behaviour. Therefore we take a copy at the beginning and then we will replace the
-        modified matrix data with this copied data at the end, thus preserving the original. */
-    T *tempMatrixData;
-    tempMatrixData = new T[m_nRows * m_nCols];
-    for (int i=0; i<(m_nRows*m_nCols); ++i)
-        tempMatrixData[i] = m_matrixData[i]; 
+        /* Make a copy of the matrix data before we start. We do this because the procedure below
+            will make changes to the stored matrix data (it operates 'in place') and we don't want
+            this behaviour. Therefore we take a copy at the beginning and then we will replace the
+            modified matrix data with this copied data at the end, thus preserving the original. */
+        T *tempMatrixData;
+        tempMatrixData = new T[m_nRows * m_nCols];
+        for (int i=0; i<(m_nRows*m_nCols); ++i)
+            tempMatrixData[i] = m_matrixData[i]; 
 
-    // Begin the main part of the process.
-    int cRow, cCol;
-    int maxCount = 100;
-    int count = 0;
-    bool completeFlag = false;
-    while ((!completeFlag) && (count < maxCount))
-    {
-        for (int diagIndex=0; diagIndex<m_nRows; ++diagIndex)
-        {	
-            // Loop over the diagonal of the matrix and ensure all diagonal elements are equal to one.
-            cRow = diagIndex;
-            cCol = diagIndex;
-            
-            // Find the index of the maximum element in the current column.
-            int maxIndex = FindRowWithMaxElement(cCol, cRow);
-            
-            // Now consider the column.
-            // Our aim is to set all elements BELOW the diagonal to zero.
-            for (int rowIndex=cRow+1; rowIndex<m_nRows; ++rowIndex)
-            {
-                // If the element is already zero, move on.
-                if (!CloseEnough(m_matrixData[Sub2Ind(rowIndex, cCol)], 0.0))
-                {
-                    int rowOneIndex = cCol;
+        // Begin the main part of the process.
+        int cRow, cCol;
+        int maxCount = 100;
+        int count = 0;
+        bool completeFlag = false;
+        while ((!completeFlag) && (count < maxCount))
+        {
+            for (int diagIndex=0; diagIndex<m_nRows; ++diagIndex)
+            {	
+                // Loop over the diagonal of the matrix and ensure all diagonal elements are equal to one.
+                cRow = diagIndex;
+                cCol = diagIndex;
                 
-                    // Get the value stored at the current element.
-                    T currentElementValue = m_matrixData[Sub2Ind(rowIndex, cCol)];
-                    
-                    // Get the value stored at (rowOneIndex, cCol)
-                    T rowOneValue = m_matrixData[Sub2Ind(rowOneIndex, cCol)];
-                    
-                    // If this is equal to zero, then just move on.
-                    if (!CloseEnough(rowOneValue, 0.0))
+                // Find the index of the maximum element in the current column.
+                int maxIndex = FindRowWithMaxElement(cCol, cRow);
+                
+                // Now consider the column.
+                // Our aim is to set all elements BELOW the diagonal to zero.
+                for (int rowIndex=cRow+1; rowIndex<m_nRows; ++rowIndex)
+                {
+                    // If the element is already zero, move on.
+                    if (!CloseEnough(m_matrixData[Sub2Ind(rowIndex, cCol)], 0.0))
                     {
-                        // Compute the correction factor.
-                        // (required to reduce the element at (rowIndex, cCol) to zero).
-                        T correctionFactor = -(currentElementValue / rowOneValue);
-                        MultAdd(rowIndex, rowOneIndex, correctionFactor);
+                        int rowOneIndex = cCol;
+                    
+                        // Get the value stored at the current element.
+                        T currentElementValue = m_matrixData[Sub2Ind(rowIndex, cCol)];
+                        
+                        // Get the value stored at (rowOneIndex, cCol)
+                        T rowOneValue = m_matrixData[Sub2Ind(rowOneIndex, cCol)];
+                        
+                        // If this is equal to zero, then just move on.
+                        if (!CloseEnough(rowOneValue, 0.0))
+                        {
+                            // Compute the correction factor.
+                            // (required to reduce the element at (rowIndex, cCol) to zero).
+                            T correctionFactor = -(currentElementValue / rowOneValue);
+                            MultAdd(rowIndex, rowOneIndex, correctionFactor);
+                        }
                     }
-                }
-            }							
+                }							
+            }
+            
+            /* Test whether we have achieved the desired result of converting the
+                matrix into row-echelon form. */
+            completeFlag = this->IsRowEchelon();
+            
+            // Increment the counter.
+            count++;
         }
-        
-        /* Test whether we have achieved the desired result of converting the
-            matrix into row-echelon form. */
-        completeFlag = this->IsRowEchelon();
-        
-        // Increment the counter.
-        count++;
+        // Form the output matrix.
+        Matrix<T> outputMatrix(m_nRows, m_nCols, m_matrixData);
+
+        // Restore the original matrix data from the copy.
+        for (int i=0; i<(m_nRows * m_nCols); ++i)
+            m_matrixData[i] = tempMatrixData[i];
+
+        // Delete the copy.
+        delete[] tempMatrixData;
+
+        return outputMatrix;
     }
+    // need to fix bugs
 
-    // Form the output matrix.
-    qbMatrix2<T> outputMatrix(m_nRows, m_nCols, m_matrixData);
-
-    // Restore the original matrix data from the copy.
-    for (int i=0; i<(m_nRows * m_nCols); ++i)
-        m_matrixData[i] = tempMatrixData[i];
-
-    // Delete the copy.
-    delete[] tempMatrixData;
-
-    return outputMatrix;
-    }
-    // finx bugs
-
-
-     //additon
+ //additon
     friend Matrix<T> operator+ (const Matrix<T> &X, const Matrix<T> &Y)
     {
         HaveSameDim(X, Y);
@@ -579,7 +659,7 @@ public:
     }
 
     //transposition
-    static Matrix<T> Transpose(const Matrix<T> &X) const
+    static Matrix<T> Transpose(const Matrix<T> &X) 
     {
         Matrix<T> Transposed(X.getCol(), X.getRow());
         
@@ -597,7 +677,7 @@ public:
     }
 
     //conjugation / tranpose conjugate?
-    Matrix<Complex> Conjugate(const Matrix<T> &X) const
+    Matrix<Complex> Conjugate(const Matrix<T> &X) 
     {
         Matrix<Complex> Conjugated(X.getRow(), X.getCol());
 
@@ -615,10 +695,10 @@ public:
         return Conjugated;
     }
     //element-wise multiplication
-    static Matrix<T> Elementwise_Multiplication(const Matrix<T> &X, const Matrix<T> &Y) const
+    static Matrix<T> Elementwise_Multiplication(const Matrix<T> &X, const Matrix<T> &Y) 
     {
         HaveSameDim(X, Y);
-        Matrix<T> Product(x.getRow(), X.getCol());
+        Matrix<T> Product(X.getRow(), X.getCol());
 
         omp_set_num_threads(4);
         #pragma omp parallel for
@@ -634,7 +714,7 @@ public:
         return Product;
     }
     //matiix-matrix multiplication
-    static Matrix<T> Matrix_Multiplication(const Matrix<T> &X, const Matrix<T> &Y) const
+    static Matrix<T> Matrix_Multiplication(const Matrix<T> &X, const Matrix<T> &Y) 
     {
         IsCompatitble(X, Y);
         Matrix<T> Product(X.getRow(), Y.getCol());
@@ -662,6 +742,8 @@ public:
         IsCompatible(X, a_vec);
         Vector<T> product_vec(X.getRow());
 
+        omp_set_num_threads(4);
+        #pragma omp parallel for 
         for (int i = 0; i < X.getRow(); i++)
         {
             product_vec.get(i) = 0;
@@ -679,6 +761,8 @@ public:
         IsCompatible(a_vec, X);
         Vector<T> product_vec(X.getCol());
 
+        omp_set_num_threads(4);
+        #pragma omp parallel for 
         for (int i = 0; i < X.getCol(); i++)
         {
             product_vec.get(i) = 0; 
@@ -705,14 +789,15 @@ public:
         {
             for (int j = 0; j < n ; j++)
             {
-                determinant += (((i+j) % 2 == 0) ? 1 : -1) * X.get(0, j) * Determinant(Cofactor(X, 0, j, n), n-1)
+                determinant += (((i+j) % 2 == 0) ? 1 : -1) * X.get(0, j) * Determinant(SubMatrix(X, 0, j))
             }
         }
     }
     //find cofactor
-    static Matrix<T> Cofactor(Matrix<T> &X, int row, int col, int n)
+    static Matrix<T> SubMatrix(Matrix<T> &X, int row, int col)
     {
-        Matrix<T> Cofact(n-1, n-1);
+        int n = X.getCol();
+        Matrix<T> SubMatrix(n-1, n-1);
 
         for (int i = 0; i < n; i++)
         {
@@ -721,33 +806,33 @@ public:
                 if (i != row && j != col)
                 {
                     if (j < col && i < row)
-                        Cofact.get(i, j) = X.get(i, j);
+                        SubMatrix.get(i, j) = X.get(i, j);
                     else if (j < col && i > row)
-                        Cofact.get(i-1, j) = X.get(i, j);
+                        SubMatrix.get(i-1, j) = X.get(i, j);
                     if (j > col && i < row)
-                        Cofact.get(i, j-1) = X.get(i, j);
+                        SubMatrix.get(i, j-1) = X.get(i, j);
                     else if (j > col && i > row)
-                        Confact.get(i-1, j-1) = X.get(i, j);
+                        SubMatrix.get(i-1, j-1) = X.get(i, j);
 
                 }
             }
         }
 
-        return Cofact;
+        return SubMatrix;
     }
 
     //get adjoint
     static Matrix<T> Adjoint(Matrix<T> &X)
     {
-        IsSquare(x);
+        IsSquare(X);
 
         Matrix<T> Adj(n, n);
         int n = X.getCol();
 
         if (n == 1 && X.get(0, 0) != static_cast<T>(0))
         {
-            adj.get(0, 0) = 1;
-            return adj;
+            Adj.get(0, 0) = 1;
+            return Adj;
         } 
         else if (X.get(0, 0) == static_cast<T>(0))
         {
@@ -758,7 +843,7 @@ public:
         {
             for (int j = 0; j < n; j ++)
             {
-                adj.get(j, i) = Determinant(Cofactor(X, i, j), n-1);
+                Adj.get(j, i) = Determinant(SubMatrix(X, i, j));
             }
         }
 
@@ -768,11 +853,10 @@ public:
     //find inverse    
     static Matrix<T> Inverse(Matrix<T> &X)
     {
-        isSquare(x);
+        IsSquare(x);
 
         Matrix<T> Inv(n, n);
         Matrix<T> Adj(n, n);
-        int n = X.getCol();
         T det = Determinant(X);
 
         if (det == static_cast<T>(0))
