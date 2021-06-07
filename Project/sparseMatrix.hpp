@@ -62,12 +62,10 @@ public:
         T arr(sparseMatrix.rows * sparseMatrix.cols);
         T * ptr = &arr;
         int row_tmp = sparseMatrix.row_index.size();
-//        for( int i = 0; i < row_tmp; i++) {
-//            ptr
-//        }
+        for( int i = 0; i < row_tmp; i++) {
+
+        }
     }
-//    T get(int row, int col);
-//    sparseMatrix & set(T val, int row, int col);
     void print() {
         printVector(elements);
         printVector(col_index);
