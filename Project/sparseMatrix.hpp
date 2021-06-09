@@ -58,16 +58,34 @@ public:
     }
     ~sparseMatrix() = default;
     Matrix<T> & convertToDense(sparseMatrix<T> &sparseMatrix) {
-        Matrix<T> mat = new Matrix<T>;
-        T arr(sparseMatrix.rows * sparseMatrix.cols);
-        T * ptr = &arr;
-        int row_tmp = sparseMatrix.row_index.size();
-//        for( int i = 0; i < row_tmp; i++) {
-//            ptr
-//        }
+        Matrix<T> mat(sparseMatrix.rows,sparseMatrix.cols);
+        T arr[sparseMatrix.rows * sparseMatrix.cols];
+        std::cout << sparseMatrix.rows << std::endl;
+        std::cout << sparseMatrix.cols << std::endl;
+//        T * ptr = &arr;
+        int k = 0;
+        for( int i = 0; i < sparseMatrix.rows;i++) {
+            for( int j = 0; j < sparseMatrix.cols; j++) {
+                arr[i*sparseMatrix.cols + j ] = 0;
+            }
+        }
+        for( int i = 0; i < sparseMatrix.rows; i++) {
+            int row_elements;
+            if (i == 0) {
+                row_elements = sparseMatrix.row_index[0];
+            } else {
+                row_elements = sparseMatrix.row_index[i] - sparseMatrix.row_index[i-1];
+            }
+
+            for( int j = 0; j < row_elements; j++) {
+                arr[i*sparseMatrix.cols + col_index[k]] = elements[k];
+                k++;
+            }
+        }
+        mat.set(sparseMatrix.rows * sparseMatrix.cols, arr);
+        return mat;
+
     }
-//    T get(int row, int col);
-//    sparseMatrix & set(T val, int row, int col);
     void print() {
         printVector(elements);
         printVector(col_index);
