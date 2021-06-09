@@ -144,11 +144,7 @@ int main() {
     for (int i = 0; i < 3; i++)
     {
         (Matrix<double>::Eigenvectors(M_Sym,eigenvalues.at(i), eigenvector_vec));
-        for (int j = 0; j < 3; j++)
-        {
-            cout << eigenvector_vec.get(i) << " ";
-        }
-        cout << endl;
+        eigenvector_vec.print();
     }
 
     return 0;

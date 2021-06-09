@@ -57,7 +57,9 @@ public:
     void print()
     {
         for (int i = 0; i < getDim(); i++)
-            std::cout << std::right << std::setw(7) << get(i) << std::endl;
+            std::cout << std::right << std::setw(7) << get(i) << " ";
+
+        std::cout << std::endl;
     }
     //calculate length of vector
     static T Norm(const Vector<T> &a_vec)
@@ -84,8 +86,8 @@ public:
     {
         if (this != &a_vec)
         {
-            dim = a_vec.getDim();
-            vector_data = a_vec.getData();
+            this->dim = a_vec.getDim();
+            this->vector_data = a_vec.getData();
         }
 
         return *this;
@@ -1270,9 +1272,9 @@ public:
             for (int j = 0; j < X.getCol(); j++)
             {
                 if (i == j)
-                    X.get(i, j) = 1.0;
+                    X.get(i, j) = static_cast<T>(1.0);
                 else
-                    X.get(i, j) = 0.0;
+                    X.get(i, j) = static_cast<T>(0.0);
             }
         }
     }
@@ -1303,17 +1305,14 @@ public:
         T min_epsilon = static_cast<T>(1e-9);
         T epsilon = static_cast<T>(1e6);
         Vector<T> prev_vec(n);
-        Matrix<T> Temp_Matrix(n, n);
         Matrix<T> Temp_Matrix_Inv(n, n);
 
         while ((iteration_cnt < max_iteration) && (epsilon > min_epsilon))
         {
             prev_vec = v_vec;
 
-            Temp_Matrix = A_Copied - (eigenvalue * I);
-            Temp_Matrix_Inv = Inverse(Temp_Matrix);
-            v_vec = Temp_Matrix_Inv * v_vec;
-            v_vec = Vector<T>::Normalize(v_vec);
+            Temp_Matrix_Inv = Inverse(A_Copied - (eigenvalue * I));
+            v_vec = Vector<T>::Normalize(Temp_Matrix_Inv * v_vec);
 
             epsilon = Vector<T>::Norm((v_vec - prev_vec));
 
