@@ -4,11 +4,18 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include<string>
+//#include <opencv2/opencv.hpp>
+
+//#include <omp.h>
+#include<string>
 #include <omp.h>
 #include <string>
 #include <random>
 
 #include "complex.h"
+#include <complex>
+#include "templateUtil.h"
 
 template<typename T> 
 class Vector
@@ -158,6 +165,27 @@ public:
         return dot_product;
     }
 
+//    static Vector<T> cross(const Vector<T> &a_vec, const Vector<T> &b_vec)
+//    {
+//        // Check that the number of dimensions match.
+//        if (a_vec.getDim() != b_vec.getDim())
+//            throw std::invalid_argument("Vector dimensions do not match.");
+//
+//        // Check that the number of dimensions is 3.
+//        /* Although the cross-product is also defined for 7 dimensions, we are
+//            not going to consider that case at this time. */
+//        if (a_vec.getDim() != 3)
+//            throw std::invalid_argument("Vectors are not three-dimensional");
+//
+//        // Compute the cross product.
+//        std::vector<T> cross_product;
+//        resultData.push_back((a_vec.get(1) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(1)));
+//        resultData.push_back(-((a_vec.get(0) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(0))));
+//        resultData.push_back((a_vec.get(0) * b_vec.get(1)) - (a_vec.get(1) * b_vec.get(0)));
+//
+//        Vector<T> cross_product_vec(cross_product);
+//        return cross_prouct_vec;
+//    }
     static Vector<T> Cross_Product(const Vector<T>& a_vec, const Vector<T>& b_vec)
     {
         // Check that the number of dimensions match.
@@ -192,11 +220,42 @@ private:
 template<typename T>
 class Matrix
 {
+public:
+
+    Matrix(int row, int col) {
+        this->row = row;
+        this->col = col;
+        size = row * col;
+        mat_ptr = new T[row * col];
+    }
+    
+    /**
+    Matrix(const Matrix<T>& X)
+    {
+        this->row = X.row;
+        this->col = X.col;
+        this->size = this->row * this->col;
+        this->mat_ptr = new T[size];
+
+        for (int i = 0; i < row; i++)
+            for (int j = 0; j < col; j++) {
+                get(i, j) = X.get(i, j);
+
+            }
+
+
+    }
+    */
+    
+
+    ~Matrix() {
+
+    }
 private:
     int row;
     int col;
     int size;
-    T* mat_ptr;
+    T *mat_ptr;
 
 
     Matrix<T> ReturnSlice(std::vector<int> row, std::vector<int> col) {
@@ -214,7 +273,7 @@ private:
 
     }
 
-    void SliceIndex(std::vector<int>& slice, int start, int end, int step) {
+    void SliceIndex(std::vector<int> &slice, int start, int end, int step) {
         if (step < 0) {
             int tmp = start;
             start = end;
@@ -253,32 +312,26 @@ private:
         ValidRowIndex(row);
         ValidColumnIndex(col);
     }
+
 public:
-    Matrix(int row, int col) {
-        this->row = row;
-        this->col = col;
-        size = row * col;
-        mat_ptr = new T[row * col];
+
+    //return pointer to an entry
+    T& get(int row, int col) {
+        ValidIndex(row, col);
+        return mat_ptr[row * this->col + col];
     }
 
-
-    Matrix(const Matrix<T> &X)
-    {
-        row = X.getRow();
-        col = X.getCol();
-        size = X.getSize();
-        mat_ptr = new T[size];
-
-        for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++)
-                get(i, j) = X.get(i, j);
-
+    Matrix<T>& set(int len, T* m) {
+        if (len != this->size) {
+            throw std::length_error("Number of element in array must be the same with the size of matrix");
+        }
+        for (int i = 0; i < len; ++i) {
+            mat_ptr[i] = *m;
+            ++m;
+        }
+        return *this;
     }
 
-    
-    ~Matrix() {
-
-    }
 
 
     void print() {
@@ -290,14 +343,17 @@ public:
             std::cout << std::endl;
         }
     }
+
     int getRowSize() {
         return row;
     }
+
     int getColumnSize() {
         return col;
     }
     
     
+<<<<<<< HEAD
     //return pointer to an entry
     T& get(int row, int col) const
     {
@@ -315,6 +371,9 @@ public:
         }
         return *this;
     }
+=======
+   
+>>>>>>> 094dadd23124d137e0a7efe822ba2196b41264cb
 
     void reshape(int row, int col) {
         if (row * col != size) {
@@ -324,24 +383,24 @@ public:
         this->col = col;
     }
 
-    
-    
+
     Matrix<T> Slice(int rowStart, int rowEnd, int rowStep,
-                    int colStart, int colEnd, int colStep) 
-    {   
+                    int colStart, int colEnd, int colStep) {
         if (rowStart > rowEnd) {
-            throw std::invalid_argument("slice must start from smaller row to bigger row (use negative step to slice backward)");
+            throw std::invalid_argument(
+                    "slice must start from smaller row to bigger row (use negative step to slice backward)");
         }
 
         if (colStart > colEnd) {
-            throw std::invalid_argument("slice must start from smaller column to bigger row (use negative step to slice backward)");
+            throw std::invalid_argument(
+                    "slice must start from smaller column to bigger row (use negative step to slice backward)");
         }
         ValidRowIndex(rowStart);
         ValidRowIndex(rowEnd);
         ValidColumnIndex(colStart);
         ValidColumnIndex(colEnd);
 
-        std::vector<int> rowIndex; 
+        std::vector<int> rowIndex;
         SliceIndex(rowIndex, rowStart, rowEnd, rowStep);
         std::vector<int> colIndex;
         SliceIndex(colIndex, colStart, colEnd, colStep);
@@ -349,9 +408,10 @@ public:
         return ReturnSlice(rowIndex, colIndex);
 
     }
-
     
-    T Max(){
+    
+    template <typename U = T, IF(is_arithmetic_t<U>)>
+    T Max() {
         T maxVal = mat_ptr[0];
 
         for (int i = 0; i < size; ++i) {
@@ -361,18 +421,66 @@ public:
         }
         return maxVal;
     }
-
+    
+    template <typename U = T, IF(is_complex<U>)>
+    U Max() {
+        U maxVal = mat_ptr[0];
+        for (int i = 0; i < size; ++i) {
+            if (std::abs(maxVal) < std::abs(mat_ptr[i])) {
+                maxVal = mat_ptr[i];
+            }
+        }
+        return maxVal;
+    }
+    
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Max(int axis) {
         CheckAxis(axis);
-        
+
         if (axis == 0) {
             Matrix<T> maxMatrix(1, col);
-            
-            int maxVal = 0;
+
+            T maxVal = T();
             for (int i = 0; i < col; ++i) {
                 maxVal = get(0, i);
                 for (int j = 0; j < row; ++j) {
-                    if (maxVal < get(j, i)) {
+                    if (std::abs(maxVal) < std::abs(get(j, i))) {
+                        maxVal = get(j, i);
+                    }
+                }
+                maxMatrix.get(0, i) = maxVal;
+            }
+            return maxMatrix;
+        } else if (axis == 1) {
+            Matrix<T> maxMatrix(row, 1);
+            T maxVal = T();
+            for (int i = 0; i < row; ++i) {
+                maxVal = get(i, 0);
+                for (int j = 0; j < col; ++j) {
+                    if (std::abs(maxVal) < std::abs(get(i, j))) {
+                        maxVal = get(i, j);
+                    }
+                }
+                maxMatrix.get(i, 0) = maxVal;
+            }
+            return maxMatrix;
+        }
+
+
+    }
+
+    template <typename U = T, IF(is_complex<U>)>
+    Matrix<T> Max(int axis) {
+        CheckAxis(axis);
+
+        if (axis == 0) {
+            Matrix<T> maxMatrix(1, col);
+
+            T maxVal = T();
+            for (int i = 0; i < col; ++i) {
+                maxVal = get(0, i);
+                for (int j = 0; j < row; ++j) {
+                    if (std::abs(maxVal) < std::abs(get(j, i))) {
                         maxVal = get(j, i);
                     }
                 }
@@ -382,11 +490,11 @@ public:
         }
         else if (axis == 1) {
             Matrix<T> maxMatrix(row, 1);
-            int maxVal = 0;
+            T maxVal = T();
             for (int i = 0; i < row; ++i) {
                 maxVal = get(i, 0);
                 for (int j = 0; j < col; ++j) {
-                    if (maxVal < get(i, j)) {
+                    if (std::abs(maxVal) < std::abs(get(i, j))) {
                         maxVal = get(i, j);
                     }
                 }
@@ -395,10 +503,9 @@ public:
             return maxMatrix;
         }
 
-        
-        
-    }
 
+    }
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     T Min() {
         T maxVal = mat_ptr[0];
 
@@ -409,98 +516,194 @@ public:
         }
         return maxVal;
     }
+    template <typename U = T, IF(is_complex<U>)>
+    T Min() {
+        T minVal = mat_ptr[0];
 
+        for (int i = 0; i < size; ++i) {
+            if (std::abs(minVal) > std::abs(mat_ptr[i])) {
+                minVal = mat_ptr[i];
+            }
+        }
+        return minVal;
+    }
+
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Min(int axis) {
         CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> minMatrix(1, col);
 
-            int maxVal = 0;
+            T minVal = T();
             for (int i = 0; i < col; ++i) {
-                maxVal = get(0, i);
+                minVal = get(0, i);
                 for (int j = 0; j < row; ++j) {
-                    if (maxVal > get(j, i)) {
-                        maxVal = get(j, i);
+                    if (minVal > get(j, i)) {
+                        minVal = get(j, i);
                     }
                 }
-                minMatrix.get(0, i) = maxVal;
+                minMatrix.get(0, i) = minVal;
+            }
+            return minMatrix;
+        } else if (axis == 1) {
+            Matrix<T> minMatrix(row, 1);
+            T minVal = T();
+            for (int i = 0; i < row; ++i) {
+                minVal = get(i, 0);
+                for (int j = 0; j < col; ++j) {
+                    if (minVal > get(i, j)) {
+                        minVal = get(i, j);
+                    }
+                }
+                minMatrix.get(i, 0) = minVal;
+            }
+            return minMatrix;
+        }
+
+
+    }
+
+    template <typename U = T, IF(is_complex<U>)>
+    Matrix<T> Min(int axis) {
+        CheckAxis(axis);
+
+        if (axis == 0) {
+            Matrix<T> minMatrix(1, col);
+
+            T minVal = T();
+            for (int i = 0; i < col; ++i) {
+                minVal = get(0, i);
+                for (int j = 0; j < row; ++j) {
+                    if (std::abs(minVal) > std::abs(get(j, i))) {
+                        minVal = get(j, i);
+                    }
+                }
+                minMatrix.get(0, i) = minVal;
             }
             return minMatrix;
         }
         else if (axis == 1) {
             Matrix<T> minMatrix(row, 1);
-            int maxVal = 0;
+            T minVal = T();
             for (int i = 0; i < row; ++i) {
-                maxVal = get(i, 0);
+                minVal = get(i, 0);
                 for (int j = 0; j < col; ++j) {
-                    if (maxVal > get(i, j)) {
-                        maxVal = get(i, j);
+                    if (std::abs(minVal) > std::abs(get(i, j))) {
+                        minVal = get(i, j);
                     }
                 }
-                minMatrix.get(i, 0) = maxVal;
+                minMatrix.get(i, 0) = minVal;
             }
             return minMatrix;
         }
 
 
-
     }
-
+    template <typename U = T, IF(is_complex<U>)>
     T Avg() {
-        T Avg = 0;
+        T Avg = T();
 
         for (int i = 0; i < size; ++i) {
-            Avg += mat_ptr[i];
+            Avg = Avg +  mat_ptr[i];
         }
-        Avg /= size;
+        T c (std::real(Avg) / size, std::imag(Avg) / size );
+        return c;
+    }
+   
+    template <typename U = T, IF(is_arithmetic_t<U>)>
+    T Avg() {
+        T Avg = T();
+
+        for (int i = 0; i < size; ++i) {
+            Avg = Avg + mat_ptr[i];
+        }
+        Avg = Avg / size;
         return Avg;
     }
-
+    
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Avg(int axis) {
         CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> AvgMatrix(1, col);
 
-            int avg = 0;
+            T avg = T();
             for (int i = 0; i < col; ++i) {
                 avg = 0;
                 for (int j = 0; j < row; ++j) {
                     
-                   avg += get(j, i);
+                   avg = avg + get(j, i);
                     
                 }
-                avg /= row;
+                avg = avg / row;
                 AvgMatrix.get(0, i) = avg;
+            }
+            return AvgMatrix;
+        } else if (axis == 1) {
+            Matrix<T> AvgMatrix(row, 1);
+            T avg = T();
+            for (int i = 0; i < row; ++i) {
+                avg = 0;
+                for (int j = 0; j < col; ++j) {
+                    
+                        avg = avg + get(i, j);
+                   
+                }
+                avg = avg / col;
+                AvgMatrix.get(i, 0) = avg;
+            }
+            return AvgMatrix;
+        }
+
+    }
+
+    template <typename U = T, IF(is_complex<U>)>
+    Matrix<T> Avg(int axis) {
+        CheckAxis(axis);
+
+        if (axis == 0) {
+            Matrix<T> AvgMatrix(1, col);
+
+            T avg = T();
+            for (int i = 0; i < col; ++i) {
+                avg = T();
+                for (int j = 0; j < row; ++j) {
+
+                    avg = avg + get(j, i);
+
+                }
+                T c (std::real(avg)/row, std::imag(avg)/row);
+                AvgMatrix.get(0, i) = c;
             }
             return AvgMatrix;
         }
         else if (axis == 1) {
             Matrix<T> AvgMatrix(row, 1);
-            int avg = 0;
+            T avg = T();
             for (int i = 0; i < row; ++i) {
-                avg = 0;
+                avg = T();
                 for (int j = 0; j < col; ++j) {
-                    
-                        avg += get(i, j);
-                   
+
+                    avg = avg + get(i, j);
+
                 }
-                avg /= col;
-                AvgMatrix.get(i, 0) = avg;
+                T c(std::real(avg) / col, std::imag(avg) / col);
+                AvgMatrix.get(i,0) = c;
             }
             return AvgMatrix;
         }
-    
+
     }
 
     T Sum() {
-        T Sum = 0;
+        T Sum = T();
 
         for (int i = 0; i < size; ++i) {
-           Sum += mat_ptr[i];
+           Sum = Sum + mat_ptr[i];
         }
-       
+
         return Sum;
     }
 
@@ -510,30 +713,29 @@ public:
         if (axis == 0) {
             Matrix<T> SumMatrix(1, col);
 
-            int sum = 0;
+            T sum = T();
             for (int i = 0; i < col; ++i) {
-                sum = 0;
+                sum = T();
                 for (int j = 0; j < row; ++j) {
 
-                    sum += get(j, i);
+                    sum = sum + get(j, i);
 
                 }
-                
+
                 SumMatrix.get(0, i) = sum;
             }
             return SumMatrix;
-        }
-        else if (axis == 1) {
+        } else if (axis == 1) {
             Matrix<T> SumMatrix(row, 1);
-            int sum = 0;
+            T sum = T();
             for (int i = 0; i < row; ++i) {
-                sum = 0;
+                sum = T();
                 for (int j = 0; j < col; ++j) {
 
-                    sum += get(i, j);
+                    sum = sum + get(i, j);
 
                 }
-               
+
                 SumMatrix.get(i, 0) = sum;
             }
             return SumMatrix;
@@ -555,12 +757,12 @@ public:
                 T sum = T();
                 for (int ii = 0; ii < kernel.row; ++ii) {
                     for (int jj = 0; jj < kernel.col; ++jj) {
-                        sum += kernel.get(ii,jj) * get(i + ii, j + jj);
+                        sum += kernel.get(ii, jj) * get(i + ii, j + jj);
                     }
                 }
 
                 ans.get(i, j) = sum;
-                
+
             }
         }
         return ans;
@@ -590,7 +792,7 @@ public:
         }
     }
 
-    static void IsCompatible(const Matrix<T> &X, const Matrix<T> &Y) 
+    static void IsCompatible(const Matrix<T> &X, const Matrix<T> &Y)
     {
         if (X.getCol() != Y.getRow())
         {
@@ -1130,7 +1332,6 @@ public:
             }
         }
     }
-
     //find eigenvector by inverse power iteration method
     static void Eigenvectors(const Matrix<T> &A, const T &eigenvalue, Vector<T> &eigenvector)
     {
@@ -1172,12 +1373,51 @@ public:
 
             epsilon = Vector<T>::Norm((v_vec - prev_vec));
 
-            iteration_cnt++;
-        }
+}
 
         eigenvector = v_vec;
     }
     
 };
+/*
+template <typename T>
+cv::Mat convertToOpenCV(Matrix<T> &matrix) {
+    int type;
+    if (std::is_same<T, uint8_t>()) {
+        type = 0;
+    } else if (std::is_same<T, int8_t>()) {
+        type = 1;
+    } else if (std::is_same<T, uint16_t>()) {
+        type = 2;
+    } else if (std::is_same<T, int16_t>()) {
+        type = 3;
+    } else if (std::is_same<T, int32_t>()) {
+        type = 4;
+    } else if (std::is_same<T, float>()) {
+        type = 5;
+    } else if (std::is_same<T, double>()) {
+        type = 6;
+    } else {
+        type = 7;
+    }
+    cv::Mat mat(matrix.getRowSize(), matrix.getColumnSize(), type, matrix.getPtr());
+    return mat;
+};
+template <typename T>
+Matrix<T> convertFromOpenCV(cv::Mat &mat) {
+    T arr[mat.rows * mat.cols * mat.channels() + 1];
+
+    for (int i = 0; i < mat.rows; i++) {
+        for (int j = 0; j < mat.cols * mat.channels(); j++) {
+            auto *p = mat.ptr(i, j);
+            arr[i * mat.rows + j] = *p;
+        }
+    }
+    Matrix<T> matrix(mat.rows, mat.cols * mat.channels());
+    matrix.set(mat.rows * mat.cols * mat.channels(), arr);
+    return matrix;
+}
+*/
+
 
 #endif
