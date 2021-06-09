@@ -165,40 +165,14 @@ public:
         return dot_product;
     }
 
-//    static Vector<T> cross(const Vector<T> &a_vec, const Vector<T> &b_vec)
-//    {
-//        // Check that the number of dimensions match.
-//        if (a_vec.getDim() != b_vec.getDim())
-//            throw std::invalid_argument("Vector dimensions do not match.");
-//
-//        // Check that the number of dimensions is 3.
-//        /* Although the cross-product is also defined for 7 dimensions, we are
-//            not going to consider that case at this time. */
-//        if (a_vec.getDim() != 3)
-//            throw std::invalid_argument("Vectors are not three-dimensional");
-//
-//        // Compute the cross product.
-//        std::vector<T> cross_product;
-//        resultData.push_back((a_vec.get(1) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(1)));
-//        resultData.push_back(-((a_vec.get(0) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(0))));
-//        resultData.push_back((a_vec.get(0) * b_vec.get(1)) - (a_vec.get(1) * b_vec.get(0)));
-//
-//        Vector<T> cross_product_vec(cross_product);
-//        return cross_prouct_vec;
-//    }
     static Vector<T> Cross_Product(const Vector<T>& a_vec, const Vector<T>& b_vec)
     {
-        // Check that the number of dimensions match.
         if (a_vec.getDim() != b_vec.getDim())
             throw std::invalid_argument("Vector dimensions do not match.");
 
-        // Check that the number of dimensions is 3.
-        /* Although the cross-product is also defined for 7 dimensions, we are
-            not going to consider that case at this time. */
         if (a_vec.getDim() != 3)
             throw std::invalid_argument("Vectors are not three-dimensional");
 
-        // Compute the cross product.
         std::vector<T> cross_product;
         cross_product.push_back((a_vec.get(1) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(1)));
         cross_product.push_back(-((a_vec.get(0) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(0))));
