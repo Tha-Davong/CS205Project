@@ -14,9 +14,9 @@ int main() {
     int a[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
     int b[] = { 1,2,3,4,5,6};
     complex<int> c[] = {complex<int>(1,1), complex<int>(2,2), complex<int>(3,3), complex<int>(4,4)};
-   m3.set(4, c);
-   m3.print();
-   m3.Avg(0).print();
+    m1.set(16, a);
+    m1.print();
+    m1.Max(0).print();
     
     
     

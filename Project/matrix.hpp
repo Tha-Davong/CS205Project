@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <vector>
 #include<string>
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 
 //#include <omp.h>
 #include<string>
@@ -1769,6 +1769,7 @@ public:
     }
     
 };
+/*
 template <typename T>
 cv::Mat convertToOpenCV(Matrix<T> &matrix) {
     int type;
@@ -1806,5 +1807,7 @@ Matrix<T> convertFromOpenCV(cv::Mat &mat) {
     matrix.set(mat.rows * mat.cols * mat.channels(), arr);
     return matrix;
 }
+*/
+
 
 #endif
