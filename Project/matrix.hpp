@@ -5,7 +5,8 @@
 #include <iomanip>
 #include <vector>
 #include <omp.h>
-#include<string>  
+#include <string>
+#include <random>
 
 #include "complex.h"
 
@@ -66,19 +67,21 @@ public:
 
     }
 
-    operator= (const Vector<T>& a_vec)
+    Vector<T> operator= (const Vector<T>& a_vec)
     {
         if (this != a_vec)
         {
             dim = a_vec.getDim();
             vector_data = a_vec.getData();
         }
+
+        return *this;
     }
 
     friend Vector<T> operator/ (const Vector<T> &a_vec, const T& scalar)
     {
         if (scalar == static_cast<T>(0.0))
-            throw runtime_error("Math error: Attempted to divide by zero");
+            throw std::runtime_error("Math error: Attempted to divide by zero");
 
         Vector<T> quotient_vec(a_vec.getDim());
         
@@ -163,9 +166,9 @@ public:
 
         // Compute the cross product.
         std::vector<T> cross_product;
-        resultData.push_back((a_vec.get(1) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(1)));
-        resultData.push_back(-((a_vec.get(0) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(0))));
-        resultData.push_back((a_vec.get(0) * b_vec.get(1)) - (a_vec.get(1) * b_vec.get(0)));
+        cross_product.push_back((a_vec.get(1) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(1)));
+        cross_product.push_back(-((a_vec.get(0) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(0))));
+        cross_product.push_back((a_vec.get(0) * b_vec.get(1)) - (a_vec.get(1) * b_vec.get(0)));
 
         Vector<T> cross_product_vec(cross_product);
         return cross_product_vec;
@@ -255,8 +258,8 @@ public:
         row = X.getRow();
         col = X.getCol();
         size = X.getSize();
-
         mat_ptr = new T[size];
+
         for (int i = 0; i < row; i++)
             for (int j = 0; j < col; j++)
                 get(i, j) = X.get(i, j);
@@ -580,13 +583,13 @@ public:
         }
     }
 
-    static void IsSquare(const Matrix<T> &X) 
+    static void IsSquare(const Matrix<T> &X)
     {
         if (X.getRow() != X.getCol())
-            throw new std::invalid_argument("Matrice is not square!");
+            throw new std::invalid_argument("Matrix is not square!");
     }
 
-    bool IsCloseEnough(T &x, T &y) const
+    static bool IsCloseEnough(T &x, T &y)
     {
         return fabs(x - y) < 1e-9;
     }
@@ -601,8 +604,8 @@ public:
             for (int i = k + 1; i < X.getCol(); i++)
             {   
                 //element_prime is the entry that mirrors element across the diagonal
-                T element = get(i, k);
-                T element_prime = get(k, i);
+                T element = X.get(i, k);
+                T element_prime = X.get(k, i);
                 
                 if (!IsCloseEnough(element, element_prime))
                     throw new std::invalid_argument("Matrix is not symmetric");
@@ -615,7 +618,7 @@ public:
     }
 
     //U stand for upper triangular
-    bool Matrix<T> IsCloseToUEnough(const Matrix<T> &X)
+    static bool IsCloseToUEnough(const Matrix<T> &X)
     {
         IsSquare(X);
 
@@ -645,7 +648,7 @@ public:
                 delete[] mat_ptr;
 
             mat_ptr = new T[size];
-            for (int i = 0; i < row; i++)
+            for(int i = 0; i < row; i++)
                 for (int j = 0; j < col; j++)
                     get(i, j) = X.get(i, j);
         }
@@ -657,8 +660,6 @@ public:
         HaveSameDim(X, Y);
         Matrix<T> Sum(X.getRow(), X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for
         for (int i = 0; i < Sum.getRow(); i++)
         {
             for (int j = 0; j < Sum.getCol(); j++)
@@ -667,7 +668,7 @@ public:
             }
         }
 
-        return sum;
+        return Sum;
     }
     //subtraction
     friend Matrix<T> operator- (const Matrix<T> &X, const Matrix<T> &Y)
@@ -675,8 +676,6 @@ public:
         HaveSameDim(X, Y);
         Matrix<T> Difference(X.getRow(), X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for
         for (int i = 0; i < Difference.getRow(); i++)
         {
             for (int j = 0; j < Difference.getCol(); j++)
@@ -692,8 +691,6 @@ public:
     {
         Matrix<T> Product(X.getRow(), X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for
         for (int i = 0; i < Product.getRow(); i++)
         {
             for (int j = 0; j < Product.getCol(); j++)
@@ -710,8 +707,6 @@ public:
     {
         Matrix<T> Product(X.getRow(), X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for
         for (int i = 0; i < Product.getRow(); i++)
         {
             for (int j = 0; j < Product.getCol(); j++)
@@ -726,13 +721,11 @@ public:
     //scalar division
     friend Matrix<T> operator/ (const Matrix<T> &X, const T &scalar) 
     {
-        if (scalar == static_cast<T(0.0))
-            throw runtime_error("Math error: Attempted to divide by zero");
+        if (scalar == static_cast<T>(0.0))
+            throw std::runtime_error("Math error: Attempted to divide by zero");
 
         Matrix<T> Quotient(X.getRow(), X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for
         for (int i = 0 ; i < Quotient.getRow(); i++)
         {
             for (int j = 0; j < Quotient.getCol(); j++)
@@ -748,33 +741,29 @@ public:
     static Matrix<T> Transpose(const Matrix<T> &X) 
     {
         Matrix<T> Transposed(X.getCol(), X.getRow());
-        
-        omp_set_num_threads(4);
-        #pragma omp parallel for
-        for (int i = 0; i < row; i++)
+
+        for (int i = 0; i < X.getRow(); i++)
         {
-            for (int j = 0; j < col; j++)
+            for (int j = 0; j < X.getCol(); j++)
             {
                 Transposed.get(j, i) = X.get(i, j);
             }
         }
 
-        reutrn Transposed;
+        return Transposed;
     }
 
-    //conjugation / tranpose conjugate?
+    //conjugation / transpose conjugate?
     static Matrix<Complex> Conjugate(const Matrix<T> &X) 
     {
         Matrix<Complex> Conjugated(X.getRow(), X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for
         for (int i = 0; i < Conjugated.getRow(); i++)
         {
             for (int j = 0; j < Conjugated.getCol(); j++)
             {
                 Complex &complex = X.get(i, j);
-                Conjugated.get(i, j) = new Complex(complex.getReal(), -complex.getImag());  
+                Conjugated.get(i, j) = Complex(complex.getReal(), -complex.getImag());
             } 
         }
 
@@ -786,8 +775,6 @@ public:
         HaveSameDim(X, Y);
         Matrix<T> Product(X.getRow(), X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for
         for (int i = 0; i < Product.getRow(); i++)
         {
             for (int j = 0; j < Product.getCol(); j++)
@@ -805,8 +792,6 @@ public:
         IsCompatible(X, Y);
         Matrix<T> Product(X.getRow(), Y.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for 
         for (int i = 0; i < X.getRow(); i++)
         {
             for (int j = 0; j < Y.getCol(); j++)
@@ -826,18 +811,16 @@ public:
     friend Vector<T> operator* (const Matrix<T> &X, const Vector<T> a_vec)
     {
         if (X.getCol() != a_vec.getDim())
-            throw std::invalid_argument("Matrix and vector are not competible!");
+            throw std::invalid_argument("Matrix and vector are not compatible!");
 
         Vector<T> product_vec(X.getRow());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for 
         for (int i = 0; i < X.getRow(); i++)
         {
-            product_vec.get(i) = 0;
+            product_vec.set(i, 0);
             for (int j = 0; j < X.getCol(); j++)
             {
-                product_vec.get(i) += X.get(i, j) * a_vec.get(j);
+                product_vec.set(i, product_vec.get(i) + X.get(i, j) * a_vec.get(j));
             }
         }
 
@@ -847,18 +830,16 @@ public:
     friend Matrix<T> operator* (const Vector<T> &a_vec, const Matrix<T> &X)
     {
         if (a_vec.getCol() != X.getRow())
-            throw std::invalid_argument("Vector and matrix are not competitble!");
+            throw std::invalid_argument("Vector and matrix are not compatible!");
 
         Vector<T> product_vec(X.getCol());
 
-        omp_set_num_threads(4);
-        #pragma omp parallel for 
         for (int i = 0; i < X.getCol(); i++)
         {
-            product_vec.get(i) = 0; 
+            product_vec.set(i, 0);
             for (int j = 0; j < X.getRow(); j++)
             {
-                product.get(i) = a_vec.get(i) * X.get(i, j);
+                product_vec.set(i, product_vec.get(i) + a_vec.get(i) * X.get(i, j));
             }
         }
 
@@ -879,7 +860,7 @@ public:
         {
             for (int j = 0; j < n ; j++)
             {
-                determinant += (((i+j) % 2 == 0) ? 1 : -1) * X.get(0, j) * Determinant(SubMatrix(X, 0, j))
+                determinant += (((0+j) % 2 == 0) ? 1 : -1) * X.get(0, j) * Determinant(SubMatrix(X, 0, j));
             }
         }
     }
@@ -917,8 +898,8 @@ public:
     {
         IsSquare(X);
 
-        Matrix<T> Adj(n, n);
         int n = X.getCol();
+        Matrix<T> Adj(n, n);
 
         if (n == 1 && X.get(0, 0) != static_cast<T>(0.0))
         {
@@ -940,13 +921,14 @@ public:
     {
         IsSquare(X);
 
+        int n = X.getCol();
         Matrix<T> Inv(n, n);
         Matrix<T> Adj(n, n);
         T det = Determinant(X);
 
-        if (det == static_cast<T>(0))
+        if (det == static_cast<T>(0.0))
         {
-            throw new std::invalid_argument("Matix is singular. It has no inverse!");
+            throw new std::invalid_argument("Matrix is singular. It has no inverse!");
         }
 
         Adj = Adjoint(X);       
@@ -994,31 +976,30 @@ public:
             //compute n-vector
             Vector<T> n_vec = Normalize(u_vec);
             
-            //convert n-vector to matrice to transpose
+            //convert n-vector to matrix to transpose
             Matrix<T> N_Mat (n - j, 1);
-            for (in i = 0; i < n - j; i++)
-                n_mat.get(i, 0) =  n_vec.get(i);
+            for (int i = 0; i < n - j; i++)
+                N_Mat.get(i, 0) =  n_vec.get(i);
             
             //transpose n_mat
-            Matrix<T> N_Mat_T (Transpose(N_MAT));
+            Matrix<T> N_Mat_T = Transpose(N_Mat);
 
             //create identity matrix of appropriate size
             Matrix<T> I (n - j, n - j);
             I.SetToIdentity();
 
             //Compute P_Temp
-            Matrix<T> P_Temp = I - static_cast<2.0> * N_Mat * N_Mat_T;
+            Matrix<T> P_Temp = I - static_cast<T>(2.0) * N_Mat * N_Mat_T;
 
             //form the P matrix with original dimensions
             Matrix<T> P (n, n);
             P.SetToIdentity();
 
             for (int row = j; row < n; row++)
-                for (int col = j; col < colNum; col++)
+                for (int col = j; col < n; col++)
                     P.get(row, col) = P_Temp.get(row - j, col - j);
-                
 
-             //store result to Ps
+            //store result to Ps
             Ps.push_back(P);
 
             //Apply transformation to inputMatrix
@@ -1037,14 +1018,14 @@ public:
         int p_num = Ps.size();
         Matrix<T> R_Mat = Ps.at(p_num - 1);
 
-        for (int i = vectorNums - 2; i >= 0; i--)
+        for (int i = p_num - 2; i >= 0; i--)
         {
             R_Mat = R_Mat * Ps.at(i);
         }
 
         R_Mat = R_Mat * A;
 
-        R = R_Mat
+        R = R_Mat;
         
     }
 
@@ -1069,16 +1050,16 @@ public:
         Matrix<T> Q (n, n);
         Matrix<T> R (n, n);
 
-        int max_iterations = 10e3;
-        int iteration_cnt;
-        while ((iteration_cnt < max_iteration()
+        int max_iteration = 10e3;
+        int iteration_cnt = 0;
+        while (iteration_cnt < max_iteration)
         {
             QR_Decompose(A_Copied, Q, R);
 
             A_Copied = R * Q;
 
             //check if A is close enough to being upper-triangular
-            if (IsCloseToUpperTrianglar(A_Copied))
+            if (IsCloseToUEnough(A_Copied))
                 break;
             
             iteration_cnt++;
@@ -1126,13 +1107,12 @@ public:
         I.SetToIdentity();
 
         Vector<T> v_vec(n);
-        Vector<T> v_norm_vec(n);
         for (int i = 0; i < n; i++)
             v_vec.set(i, static_cast<T>(myDistribution(myRandomGenerator)));
         
         int max_iteration = 100;
         int iteration_cnt = 0;
-        T min_epsilon static_cast<T>(1e-9);
+        T min_epsilon = static_cast<T>(1e-9);
         T epsilon = static_cast<T>(1e6);
         Vector<T> prev_vec(n);
         Matrix<T> Temp_Matrix(n, n);
@@ -1140,19 +1120,19 @@ public:
 
         while ((iteration_cnt < max_iteration) && (epsilon > min_epsilon))
         {
-            prev_v = v_vec;
+            prev_vec = v_vec;
 
-            Temp_Matrix = A_Copied - (eigenvalue * Identity_Matrix);
+            Temp_Matrix = A_Copied - (eigenvalue * I);
             Temp_Matrix_Inv = Inverse(Temp_Matrix);
             v_vec = Temp_Matrix_Inv * v_vec;
-            v_norm_vec = Normalize(v_vec);
+            v_vec = Normalize(v_vec);
 
-            epsilon = Norm((v_norm_vec - prev_vec));
+            epsilon = Norm((v_vec - prev_vec));
 
             iteration_cnt++;
         }
 
-        eigenvector = v;
+        eigenvector = v_vec;
     }
     
 };

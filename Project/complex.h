@@ -37,7 +37,9 @@ public:
     friend std::ostream & operator << (std::ostream & os, const Complex& other);
     friend std::istream & operator >> (std::istream & is, Complex& other);
 
+    double getReal();
 
+    double getImag();
 
 };
 
