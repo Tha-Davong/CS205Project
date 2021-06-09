@@ -9,6 +9,9 @@
 
 //#include <omp.h>
 #include<string>
+#include <omp.h>
+#include <string>
+#include <random>
 
 #include "complex.h"
 
@@ -17,9 +20,26 @@ class Vector
 {
 public:
 
+    Vector(int dim)
+    {
+        this->dim = dim;
+        vector_data = std::vector<T>(dim, static_cast<T>(0.0));
+    }
+
+    Vector(std::vector<T> vector_data)
+    {
+        this->dim = vector_data.size();
+        this->vector_data = vector_data;
+    }
+
     int getDim()
     {
         return dim;
+    }
+
+    std::vector<T> getData()
+    {
+        return vector_data;
     }
 
     T get(int i) const
@@ -27,24 +47,113 @@ public:
         return vector_data.at(i);
     }
 
-private:
+    void set(int i, T value)
+    {
+        vector_data[i] = value;
+    }
+    //calculate length of vector
+    static T Norm(const Vector<T> &a_vec)
+    {
+        T norm = static_cast<T>(0.0);
+        for (int i = 0; i < a_vec.getDim(); i++)
+        {
+            norm += (a_vec.get(i) * a_vec.get(i));
+        }
+        return sqrt(norm);
+    }
 
-    std::vector<T> vector_data;
+    static Vector<T> Normalize(const Vector<T> &a_vec)
+    {
+        T norm = Norm(a_vec);
 
-    int dim;
+        Vector<T> normalized(a_vec.getData());
+
+        return normalized / norm;
+
+    }
+
+    Vector<T> operator= (const Vector<T>& a_vec)
+    {
+        if (this != a_vec)
+        {
+            dim = a_vec.getDim();
+            vector_data = a_vec.getData();
+        }
+
+        return *this;
+    }
+
+    friend Vector<T> operator/ (const Vector<T> &a_vec, const T& scalar)
+    {
+        if (scalar == static_cast<T>(0.0))
+            throw std::runtime_error("Math error: Attempted to divide by zero");
+
+        Vector<T> quotient_vec(a_vec.getDim());
+        
+        for (int i = 0; i < a_vec.getDim(); i++)
+            quotient_vec.set(i, a_vec.get(i) / scalar);
+       
+        return quotient_vec;
+    }
+
+    friend Vector<T> operator* (const T &scalar, const Vector<T> &a_vec)
+    {
+        Vector<T> product_vec(a_vec.getDim());
+
+        for (int i = 0; i < a_vec.getDim(); i++)
+            product_vec.set(i, scalar * a_vec.get(i));
+
+        return product_vec;
+    }
+
+    friend Vector<T> operator* (const Vector<T> &a_vec, const T &scalar)
+    {
+        Vector<T> product_vec(a_vec.getDim());
+
+        for (int i = 0; i < a_vec.getDim(); i++)
+            product_vec.set(i, a_vec.get(i) * scalar);
+
+        return product_vec;
+    }
+
+    friend Vector<T> operator+ (const Vector<T> &a_vec, const Vector<T> &b_vec)
+    {
+        if (a_vec.getDim() != b_vec.getDim())
+            throw std::invalid_argument("Vectors are compatible");
+
+        Vector<T> sum_vec(a_vec.getDim());
+
+        for (int i = 0; i < a_vec.getDim(); i++)
+            sum_vec.set(i, a_vec.get(i) + b_vec.get(i));
+
+        return sum_vec;
+    }
+
+    friend Vector<T> operator- (const Vector<T> &a_vec, const Vector<T> &b_vec)
+    {
+        if (a_vec.getDim() != b_vec.getDim())
+            throw std::invalid_argument("Vectors are compatible");
+
+        Vector<T> difference_vec(a_vec.getDim());
+
+        for (int i = 0; i < a_vec.getDim(); i++)
+            difference_vec.set(i, a_vec.get(i) - b_vec.get(i));
+
+        return difference_vec;
+    }
 
     static T Dot_Product(const Vector<T> &a_vec, const Vector<T> &b_vec)
     {
         // Check that the number of dimensions match.
         if (a_vec.getDim() != b_vec.getDim())
             throw std::invalid_argument("Vector dimensions do not match.");
-        
+
         // Compute the dot product.
         T dot_product = static_cast<T>(0.0);
 
-        for (int i=0; i<a_vec.getDim(); i++)
+        for (int i = 0; i < a_vec.getDim(); i++)
             dot_product += (a_vec.get(i) * b_vec.get(i));
-        
+
         return dot_product;
     }
 
@@ -69,6 +178,35 @@ private:
 //        Vector<T> cross_product_vec(cross_product);
 //        return cross_prouct_vec;
 //    }
+    static Vector<T> Cross_Product(const Vector<T>& a_vec, const Vector<T>& b_vec)
+    {
+        // Check that the number of dimensions match.
+        if (a_vec.getDim() != b_vec.getDim())
+            throw std::invalid_argument("Vector dimensions do not match.");
+
+        // Check that the number of dimensions is 3.
+        /* Although the cross-product is also defined for 7 dimensions, we are
+            not going to consider that case at this time. */
+        if (a_vec.getDim() != 3)
+            throw std::invalid_argument("Vectors are not three-dimensional");
+
+        // Compute the cross product.
+        std::vector<T> cross_product;
+        cross_product.push_back((a_vec.get(1) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(1)));
+        cross_product.push_back(-((a_vec.get(0) * b_vec.get(2)) - (a_vec.get(2) * b_vec.get(0))));
+        cross_product.push_back((a_vec.get(0) * b_vec.get(1)) - (a_vec.get(1) * b_vec.get(0)));
+
+        Vector<T> cross_product_vec(cross_product);
+        return cross_product_vec;
+    }
+
+private:
+
+    std::vector<T> vector_data;
+
+    int dim;
+
+    
 };
 
 template<typename T>
@@ -140,9 +278,16 @@ public:
         mat_ptr = new T[row * col];
     }
 
+    Matrix(const Matrix<T> &X)
+    {
+        row = X.getRow();
+        col = X.getCol();
+        size = X.getSize();
+        mat_ptr = new T[size];
 
-    Matrix() {
-
+        for (int i = 0; i < row; i++)
+            for (int j = 0; j < col; j++)
+                get(i, j) = X.get(i, j);
     }
 
 
@@ -436,14 +581,28 @@ public:
 
     }
 
-    static void HaveSameDim(const Matrix<T> &X, const Matrix<T> &Y) {
-        if (X.getCol() != Y.getCol() || X.getRow() != Y.getRow()) {
+    int getRow()
+    {
+        return row;
+    }
+
+    int getCol()
+    {
+        return col;
+    }
+
+    static void HaveSameDim(const Matrix<T> &X, const Matrix<T> &Y)
+    {
+        if (X.getCol() != Y.getCol() || X.getRow() != Y.getRow()) 
+        {
             throw std::invalid_argument("The matrices don't have the same shape!");
         }
     }
 
-    static void IsCompatible(const Matrix<T> &X, const Matrix<T> &Y) {
-        if (X.col != Y.row) {
+    static void IsCompatible(const Matrix<T> &X, const Matrix<T> &Y)
+    {
+        if (X.getCol() != Y.getRow())
+        {
             throw std::invalid_argument("The matrices are not compatible!");
         }
     }
@@ -1051,9 +1210,556 @@ public:
 //        eigenvector = v;
 //    }
 
+    static void IsSquare(const Matrix<T> &X)
+    {
+        if (X.getRow() != X.getCol())
+            throw new std::invalid_argument("Matrix is not square!");
+    }
 
+    static bool IsCloseEnough(T &x, T &y)
+    {
+        return fabs(x - y) < 1e-9;
+    }
 
+    static void IsSymmetric(const Matrix<T> &X)
+    {
+        IsSquare(X);
+        //k is diagonal_index
+        //i is row_index
+        for (int k = 0; k < X.getCol(); k++)
+        {
+            for (int i = k + 1; i < X.getCol(); i++)
+            {   
+                //element_prime is the entry that mirrors element across the diagonal
+                T element = X.get(i, k);
+                T element_prime = X.get(k, i);
+                
+                if (!IsCloseEnough(element, element_prime))
+                    throw new std::invalid_argument("Matrix is not symmetric");
 
+                i++;
+            }
+
+            k++;
+        }
+    }
+
+    //U stand for upper triangular
+    static bool IsCloseToUEnough(const Matrix<T> &X)
+    {
+        IsSquare(X);
+
+        for (int diag_index = 0; diag_index < X.getRow(); diag_index++)
+        {	
+            for (int i = diag_index + 1; i < X.getRow(); i++)
+            {
+                if (!CloseEnough(X.get(i, diag_index), 0.0))
+                {
+                    return false;
+                }
+            }							
+        }
+        
+        return true;
+    }
+
+    Matrix <T> operator= (const Matrix<T> &X)
+    {
+        if (this != X)
+        {
+            row = X.getRow();
+            col = X.getCol();
+            size = X.getSize();
+
+            if (mat_ptr)
+                delete[] mat_ptr;
+
+            mat_ptr = new T[size];
+            for(int i = 0; i < row; i++)
+                for (int j = 0; j < col; j++)
+                    get(i, j) = X.get(i, j);
+        }
+    }
+
+    //additon
+    friend Matrix<T> operator+ (const Matrix<T> &X, const Matrix<T> &Y)
+    {
+        HaveSameDim(X, Y);
+        Matrix<T> Sum(X.getRow(), X.getCol());
+
+        for (int i = 0; i < Sum.getRow(); i++)
+        {
+            for (int j = 0; j < Sum.getCol(); j++)
+            {
+                Sum.get(i, j) = X.get(i, j) + Y.get(i, j);
+            }
+        }
+
+        return Sum;
+    }
+    //subtraction
+    friend Matrix<T> operator- (const Matrix<T> &X, const Matrix<T> &Y)
+    {
+        HaveSameDim(X, Y);
+        Matrix<T> Difference(X.getRow(), X.getCol());
+
+        for (int i = 0; i < Difference.getRow(); i++)
+        {
+            for (int j = 0; j < Difference.getCol(); j++)
+            {
+                Difference.get(i, j) = X.get(i, j) - Y.get(i, j);
+            }
+        }
+
+        return Difference;
+    }
+    //scalar multiplication
+    friend Matrix<T> operator* (const Matrix<T> &X, const T &scalar) 
+    {
+        Matrix<T> Product(X.getRow(), X.getCol());
+
+        for (int i = 0; i < Product.getRow(); i++)
+        {
+            for (int j = 0; j < Product.getCol(); j++)
+            {
+                Product.get(i, j) = X.get(i, j) * scalar;
+            }
+           
+        }
+
+        return Product;
+    }
+
+    friend Matrix<T> operator* (const T &scalar, const Matrix<T> &X) 
+    {
+        Matrix<T> Product(X.getRow(), X.getCol());
+
+        for (int i = 0; i < Product.getRow(); i++)
+        {
+            for (int j = 0; j < Product.getCol(); j++)
+            {
+                Product.get(i, j) = scalar * X.get(i, j);
+            }
+        }
+
+        return Product;
+    }
+
+    //scalar division
+    friend Matrix<T> operator/ (const Matrix<T> &X, const T &scalar) 
+    {
+        if (scalar == static_cast<T>(0.0))
+            throw std::runtime_error("Math error: Attempted to divide by zero");
+
+        Matrix<T> Quotient(X.getRow(), X.getCol());
+
+        for (int i = 0 ; i < Quotient.getRow(); i++)
+        {
+            for (int j = 0; j < Quotient.getCol(); j++)
+            {
+                Quotient.get(i, j) = X.get(i, j) / scalar;
+            }
+        }
+
+        return Quotient;
+    }
+
+    //transposition
+    static Matrix<T> Transpose(const Matrix<T> &X) 
+    {
+        Matrix<T> Transposed(X.getCol(), X.getRow());
+
+        for (int i = 0; i < X.getRow(); i++)
+        {
+            for (int j = 0; j < X.getCol(); j++)
+            {
+                Transposed.get(j, i) = X.get(i, j);
+            }
+        }
+
+        return Transposed;
+    }
+
+    //conjugation / transpose conjugate?
+    static Matrix<Complex> Conjugate(const Matrix<T> &X) 
+    {
+        Matrix<Complex> Conjugated(X.getRow(), X.getCol());
+
+        for (int i = 0; i < Conjugated.getRow(); i++)
+        {
+            for (int j = 0; j < Conjugated.getCol(); j++)
+            {
+                Complex &complex = X.get(i, j);
+                Conjugated.get(i, j) = Complex(complex.getReal(), -complex.getImag());
+            } 
+        }
+
+        return Conjugated;
+    }
+    //element-wise multiplication
+    static Matrix<T> Elementwise_Multiplication(const Matrix<T> &X, const Matrix<T> &Y) 
+    {
+        HaveSameDim(X, Y);
+        Matrix<T> Product(X.getRow(), X.getCol());
+
+        for (int i = 0; i < Product.getRow(); i++)
+        {
+            for (int j = 0; j < Product.getCol(); j++)
+            {
+                Product.get(i, j) = X.get(i, j) * Y.get(i, j);
+            }
+            
+        }
+        
+        return Product;
+    }
+     
+    static Matrix<T> Matrix_Multiplication(const Matrix<T> &X, const Matrix<T> &Y) 
+    {
+        IsCompatible(X, Y);
+        Matrix<T> Product(X.getRow(), Y.getCol());
+
+        for (int i = 0; i < X.getRow(); i++)
+        {
+            for (int j = 0; j < Y.getCol(); j++)
+            {
+                Product.get(i, j) = 0;
+                for (int k = 0; k < X.getCol(); k++)
+                {
+                    Product.get(i, j) += X.get(i, k) * Y.get(k, j);
+                }
+            }
+        }
+
+        return Product;
+    }
+
+    //matrix-vector multiplication 
+    friend Vector<T> operator* (const Matrix<T> &X, const Vector<T> a_vec)
+    {
+        if (X.getCol() != a_vec.getDim())
+            throw std::invalid_argument("Matrix and vector are not compatible!");
+
+        Vector<T> product_vec(X.getRow());
+
+        for (int i = 0; i < X.getRow(); i++)
+        {
+            product_vec.set(i, 0);
+            for (int j = 0; j < X.getCol(); j++)
+            {
+                product_vec.set(i, product_vec.get(i) + X.get(i, j) * a_vec.get(j));
+            }
+        }
+
+        return product_vec;
+    }
+    
+    friend Matrix<T> operator* (const Vector<T> &a_vec, const Matrix<T> &X)
+    {
+        if (a_vec.getCol() != X.getRow())
+            throw std::invalid_argument("Vector and matrix are not compatible!");
+
+        Vector<T> product_vec(X.getCol());
+
+        for (int i = 0; i < X.getCol(); i++)
+        {
+            product_vec.set(i, 0);
+            for (int j = 0; j < X.getRow(); j++)
+            {
+                product_vec.set(i, product_vec.get(i) + a_vec.get(i) * X.get(i, j));
+            }
+        }
+
+        return product_vec;
+    }
+
+    //determinant
+    static T Determinant(const Matrix<T> &X)
+    {
+        IsSquare(X);
+
+        T determinant = 0;
+        int n = X.getCol();
+
+        if (n == 1)
+            return X.get(0, 0);
+        else
+        {
+            for (int j = 0; j < n ; j++)
+            {
+                determinant += (((0+j) % 2 == 0) ? 1 : -1) * X.get(0, j) * Determinant(SubMatrix(X, 0, j));
+            }
+        }
+    }
+    //find cofactor
+    static Matrix<T> SubMatrix(const Matrix<T> &X, int row, int col)
+    {
+        int m = X.getRow();
+        int n = X.getCol();
+        Matrix<T> SubMatrix(m-1, n-1);
+
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                if (i != row && j != col)
+                {
+                    if (j < col && i < row)
+                        SubMatrix.get(i, j) = X.get(i, j);
+                    else if (j < col && i > row)
+                        SubMatrix.get(i-1, j) = X.get(i, j);
+                    else if (j > col && i < row)
+                        SubMatrix.get(i, j-1) = X.get(i, j);
+                    else if (j > col && i > row)
+                        SubMatrix.get(i-1, j-1) = X.get(i, j);
+
+                }
+            }
+        }
+
+        return SubMatrix;
+    }
+
+    //get adjoint
+    static Matrix<T> Adjoint(const Matrix<T> &X)
+    {
+        IsSquare(X);
+
+        int n = X.getCol();
+        Matrix<T> Adj(n, n);
+
+        if (n == 1 && X.get(0, 0) != static_cast<T>(0.0))
+        {
+            Adj.get(0, 0) = static_cast<T>(1);
+            return Adj;
+        } 
+        else if (X.get(0, 0) == static_cast<T>(0.0))
+            throw new std::invalid_argument("Zero matrix does not have adjoint matrix");
+
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j ++)
+                Adj.get(j, i) = Determinant(SubMatrix(X, i, j));
+
+        return Adj;
+
+    }
+    //find inverse    
+    static Matrix<T> Inverse(const Matrix<T> &X)
+    {
+        IsSquare(X);
+
+        int n = X.getCol();
+        Matrix<T> Inv(n, n);
+        Matrix<T> Adj(n, n);
+        T det = Determinant(X);
+
+        if (det == static_cast<T>(0.0))
+        {
+            throw new std::invalid_argument("Matrix is singular. It has no inverse!");
+        }
+
+        Adj = Adjoint(X);       
+
+        Inv = Adj / det;
+
+        return Inv;
+
+    }
+
+    static void QR_Decompose(const Matrix<T> &A, Matrix<T> &Q, Matrix<T> &R)
+    {
+        Matrix<T> A_Copied = A;
+
+        IsSquare(A_Copied);
+
+        int n = A_Copied.getCol();
+
+        std::vector<Matrix<T>> Ps;
+        for (int j = 0; j < n - 1; j++)
+        {
+            //a is column vector of A
+            //b is vector onto which we wish to reflect a
+            Vector<T> a_vec (n - j);
+            Vector<T> b_vec (n - j);
+
+            for (int i = j; i < n; i++)
+            {
+                a_vec.set(i-j, A_Copied.get(i, j));
+                b_vec.set(i-j, static_cast<T>(0.0));
+            }
+            b_vec.set(0, static_cast<T>(1.0));
+
+            //norm of a 
+            T a_norm = Norm(a_vec);
+
+            //compute sign
+            int sign = -1;
+            if (a_vec.get(0) < static_cast<T>(0.0))
+                sign = 1;
+
+            //compute u-vector
+            Vector<T> u_vec = a_vec - (sign * a_norm * b_vec);
+
+            //compute n-vector
+            Vector<T> n_vec = Normalize(u_vec);
+            
+            //convert n-vector to matrix to transpose
+            Matrix<T> N_Mat (n - j, 1);
+            for (int i = 0; i < n - j; i++)
+                N_Mat.get(i, 0) =  n_vec.get(i);
+            
+            //transpose n_mat
+            Matrix<T> N_Mat_T = Transpose(N_Mat);
+
+            //create identity matrix of appropriate size
+            Matrix<T> I (n - j, n - j);
+            I.SetToIdentity();
+
+            //Compute P_Temp
+            Matrix<T> P_Temp = I - static_cast<T>(2.0) * N_Mat * N_Mat_T;
+
+            //form the P matrix with original dimensions
+            Matrix<T> P (n, n);
+            P.SetToIdentity();
+
+            for (int row = j; row < n; row++)
+                for (int col = j; col < n; col++)
+                    P.get(row, col) = P_Temp.get(row - j, col - j);
+
+            //store result to Ps
+            Ps.push_back(P);
+
+            //Apply transformation to inputMatrix
+            A_Copied = P * A_Copied;
+        }
+
+        //compute Q
+        Matrix<T> Q_Mat = Ps.at(0);
+
+        for (int i = 1; i < n - 1; i++)
+            Q_Mat = Q_Mat * Transpose(Ps.at(i));
+
+        Q = Q_Mat;
+
+        //compute R
+        int p_num = Ps.size();
+        Matrix<T> R_Mat = Ps.at(p_num - 1);
+
+        for (int i = p_num - 2; i >= 0; i--)
+        {
+            R_Mat = R_Mat * Ps.at(i);
+        }
+
+        R_Mat = R_Mat * A;
+
+        R = R_Mat;
+        
+    }
+
+    static void Eigenvalues(const Matrix<T> &A, std::vector<T> &eigenvalues)
+    {
+        //male Copy of A
+        Matrix<T> A_Copied = A;
+
+        //verify A is square
+        IsSquare(A_Copied);
+
+        //verify A is symmetric
+        IsSymmetric(A_Copied);
+
+        int n = A_Copied.getCol();
+
+        //create an identity matrix
+        Matrix<T> I (n, n);
+        I.SetToIdentity();
+
+        //create matrices to store Q and R
+        Matrix<T> Q (n, n);
+        Matrix<T> R (n, n);
+
+        int max_iteration = 10e3;
+        int iteration_cnt = 0;
+        while (iteration_cnt < max_iteration)
+        {
+            QR_Decompose(A_Copied, Q, R);
+
+            A_Copied = R * Q;
+
+            //check if A is close enough to being upper-triangular
+            if (IsCloseToUEnough(A_Copied))
+                break;
+            
+            iteration_cnt++;
+        }
+
+        //eigenvalues is the diagonal elements of A
+        for (int i = 0; i < n; i++)
+        {
+            eigenvalues.push_back(A_Copied.get(i, i));
+        }
+    }
+
+    void SetToIdentity(Matrix<T> &X)
+    {
+        IsSquare(X);
+
+        for (int i = 0; i < X.getRow(); i++)
+        {
+            for (int j = 0; j < X.getCol(); j++)
+            {
+                if (i == j)
+                    X.get(i, j) = 1.0;
+                else
+                    X.get(i, j) = 0.0;
+            }
+        }
+    }
+    //find eigenvector by inverse power iteration method
+    static void Eigenvectors(const Matrix<T> &A, const T &eigenvalue, Vector<T> &eigenvector)
+    {
+        //copy
+        Matrix<T> A_Copied = A;
+
+        //verify A is square
+        IsSquare(A_Copied);
+
+        std::random_device myRandomDevice;
+        std::mt19937 myRandomGenerator(myRandomDevice());
+        std::uniform_int_distribution<int> myDistribution(1.0, 10.0);
+
+        int n = A.getCol();
+
+        Matrix<T> I(n, n);
+        I.SetToIdentity();
+
+        Vector<T> v_vec(n);
+        for (int i = 0; i < n; i++)
+            v_vec.set(i, static_cast<T>(myDistribution(myRandomGenerator)));
+        
+        int max_iteration = 100;
+        int iteration_cnt = 0;
+        T min_epsilon = static_cast<T>(1e-9);
+        T epsilon = static_cast<T>(1e6);
+        Vector<T> prev_vec(n);
+        Matrix<T> Temp_Matrix(n, n);
+        Matrix<T> Temp_Matrix_Inv(n, n);
+
+        while ((iteration_cnt < max_iteration) && (epsilon > min_epsilon))
+        {
+            prev_vec = v_vec;
+
+            Temp_Matrix = A_Copied - (eigenvalue * I);
+            Temp_Matrix_Inv = Inverse(Temp_Matrix);
+            v_vec = Temp_Matrix_Inv * v_vec;
+            v_vec = Normalize(v_vec);
+
+            epsilon = Norm((v_vec - prev_vec));
+
+}
+
+        eigenvector = v_vec;
+    }
+    
 };
 template <typename T>
 cv::Mat convertToOpenCV(Matrix<T> &matrix) {
@@ -1080,21 +1786,17 @@ cv::Mat convertToOpenCV(Matrix<T> &matrix) {
 };
 template <typename T>
 Matrix<T> convertFromOpenCV(cv::Mat &mat) {
-    T arr[mat.rows * mat.cols * mat.channels()+1];
+    T arr[mat.rows * mat.cols * mat.channels() + 1];
 
     for (int i = 0; i < mat.rows; i++) {
         for (int j = 0; j < mat.cols * mat.channels(); j++) {
-            auto *p = mat.ptr(i,j);
-            arr[i*mat.rows + j] = *p;
+            auto *p = mat.ptr(i, j);
+            arr[i * mat.rows + j] = *p;
         }
     }
     Matrix<T> matrix(mat.rows, mat.cols * mat.channels());
     matrix.set(mat.rows * mat.cols * mat.channels(), arr);
-
     return matrix;
-
-
 }
-
 
 #endif
