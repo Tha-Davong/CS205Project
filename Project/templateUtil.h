@@ -7,6 +7,9 @@
 #include <type_traits>
 #include <complex>
 
+#define IF(...) typename std::enable_if< (__VA_ARGS__), bool  >::type = true
+
+
 template< class T, class U >
 constexpr bool is_same() {return std::is_same<T, U>::value;};
 
@@ -17,9 +20,9 @@ template<typename T>
 struct is_complex_t<std::complex<T>> : public std::true_type {};
 
 template<typename T>
-constexpr bool is_complex() { return is_complex_t<T>::value; }
+constexpr bool is_complex = is_complex_t<T>::value;
 
 template<typename T >
- constexpr bool is_arithmetic() { return std::is_arithmetic<T>::value;};
+constexpr bool is_arithmetic_t =  std::is_arithmetic<T>::value;
 
 #endif //CS205PROJECT_TEMPLATEUTIL_H
