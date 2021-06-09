@@ -115,12 +115,4 @@ std::istream &operator>>(std::istream &is, Complex &other) {
     return is;
 }
 
-double getReal()
-{
-    return real;
-}
 
-double getImag()
-{
-    return imag;
-}

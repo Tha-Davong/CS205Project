@@ -186,6 +186,37 @@ private:
 template<typename T>
 class Matrix
 {
+public:
+
+    Matrix(int row, int col) {
+        this->row = row;
+        this->col = col;
+        size = row * col;
+        mat_ptr = new T[row * col];
+    }
+    
+    /**
+    Matrix(const Matrix<T>& X)
+    {
+        this->row = X.row;
+        this->col = X.col;
+        this->size = this->row * this->col;
+        this->mat_ptr = new T[size];
+
+        for (int i = 0; i < row; i++)
+            for (int j = 0; j < col; j++) {
+                get(i, j) = X.get(i, j);
+
+            }
+
+
+    }
+    */
+    
+
+    ~Matrix() {
+
+    }
 private:
     int row;
     int col;
@@ -245,31 +276,24 @@ private:
         ValidColumnIndex(col);
     }
 public:
-    Matrix(int row, int col) {
-        this->row = row;
-        this->col = col;
-        size = row * col;
-        mat_ptr = new T[row * col];
+
+    //return pointer to an entry
+    T& get(int row, int col) {
+        ValidIndex(row, col);
+        return mat_ptr[row * this->col + col];
     }
 
-
-    Matrix(const Matrix<T> &X)
-    {
-        row = X.getRow();
-        col = X.getCol();
-        size = X.getSize();
-        mat_ptr = new T[size];
-
-        for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++)
-                get(i, j) = X.get(i, j);
-
+    Matrix<T>& set(int len, T* m) {
+        if (len != this->size) {
+            throw std::length_error("Number of element in array must be the same with the size of matrix");
+        }
+        for (int i = 0; i < len; ++i) {
+            mat_ptr[i] = *m;
+            ++m;
+        }
+        return *this;
     }
 
-    
-    ~Matrix() {
-
-    }
 
 
     void print() {
@@ -289,22 +313,7 @@ public:
     }
     
     
-    //return pointer to an entry
-    T& get(int row, int col) {
-        ValidIndex(row, col);
-        return mat_ptr[row * this->col + col];
-    }
-
-    Matrix<T>& set(int len, T* m) {
-        if (len != this->size) {
-            throw std::length_error("Number of element in array must be the same with the size of matrix");
-        }
-        for (int i = 0; i < len; ++i) {
-            mat_ptr[i] = *m;
-            ++m;
-        }
-        return *this;
-    }
+   
 
     void reshape(int row, int col) {
         if (row * col != size) {
@@ -438,12 +447,12 @@ public:
     }
 
     T Avg() {
-        T Avg = 0;
+        T Avg = T();
 
         for (int i = 0; i < size; ++i) {
-            Avg += mat_ptr[i];
+            Avg = Avg +  mat_ptr[i];
         }
-        Avg /= size;
+        Avg = Avg / size;
         return Avg;
     }
 
@@ -453,30 +462,30 @@ public:
         if (axis == 0) {
             Matrix<T> AvgMatrix(1, col);
 
-            int avg = 0;
+            T avg = T();
             for (int i = 0; i < col; ++i) {
                 avg = 0;
                 for (int j = 0; j < row; ++j) {
                     
-                   avg += get(j, i);
+                   avg = avg + get(j, i);
                     
                 }
-                avg /= row;
+                avg = avg / row;
                 AvgMatrix.get(0, i) = avg;
             }
             return AvgMatrix;
         }
         else if (axis == 1) {
             Matrix<T> AvgMatrix(row, 1);
-            int avg = 0;
+            T avg = T();
             for (int i = 0; i < row; ++i) {
                 avg = 0;
                 for (int j = 0; j < col; ++j) {
                     
-                        avg += get(i, j);
+                        avg = avg + get(i, j);
                    
                 }
-                avg /= col;
+                avg = avg / col;
                 AvgMatrix.get(i, 0) = avg;
             }
             return AvgMatrix;
@@ -485,10 +494,10 @@ public:
     }
 
     T Sum() {
-        T Sum = 0;
+        T Sum = T();
 
         for (int i = 0; i < size; ++i) {
-           Sum += mat_ptr[i];
+           Sum = Sum + mat_ptr[i];
         }
        
         return Sum;
@@ -500,12 +509,12 @@ public:
         if (axis == 0) {
             Matrix<T> SumMatrix(1, col);
 
-            int sum = 0;
+            T sum = T();
             for (int i = 0; i < col; ++i) {
-                sum = 0;
+                sum = T();
                 for (int j = 0; j < row; ++j) {
 
-                    sum += get(j, i);
+                    sum = sum + get(j, i);
 
                 }
                 
@@ -515,12 +524,12 @@ public:
         }
         else if (axis == 1) {
             Matrix<T> SumMatrix(row, 1);
-            int sum = 0;
+            T sum = T();
             for (int i = 0; i < row; ++i) {
-                sum = 0;
+                sum = T();
                 for (int j = 0; j < col; ++j) {
 
-                    sum += get(i, j);
+                    sum = sum + get(i, j);
 
                 }
                
