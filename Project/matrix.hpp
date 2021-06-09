@@ -1317,7 +1317,8 @@ public:
 
             epsilon = Vector<T>::Norm((v_vec - prev_vec));
 
-}
+            iteration_cnt++;
+        }
 
         eigenvector = v_vec;
     }
