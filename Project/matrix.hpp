@@ -14,6 +14,8 @@
 #include <random>
 
 #include "complex.h"
+#include <complex>
+#include "templateUtil.h"
 
 template<typename T> 
 class Vector
@@ -377,8 +379,9 @@ public:
         return ReturnSlice(rowIndex, colIndex);
 
     }
-
-
+    
+    
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     T Max() {
         T maxVal = mat_ptr[0];
 
@@ -389,18 +392,30 @@ public:
         }
         return maxVal;
     }
-
+    
+    template <typename U = T, IF(is_complex<U>)>
+    U Max() {
+        U maxVal = mat_ptr[0];
+        for (int i = 0; i < size; ++i) {
+            if (std::abs(maxVal) < std::abs(mat_ptr[i])) {
+                maxVal = mat_ptr[i];
+            }
+        }
+        return maxVal;
+    }
+    
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Max(int axis) {
         CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> maxMatrix(1, col);
 
-            int maxVal = 0;
+            T maxVal = T();
             for (int i = 0; i < col; ++i) {
                 maxVal = get(0, i);
                 for (int j = 0; j < row; ++j) {
-                    if (maxVal < get(j, i)) {
+                    if (std::abs(maxVal) < std::abs(get(j, i))) {
                         maxVal = get(j, i);
                     }
                 }
@@ -409,11 +424,11 @@ public:
             return maxMatrix;
         } else if (axis == 1) {
             Matrix<T> maxMatrix(row, 1);
-            int maxVal = 0;
+            T maxVal = T();
             for (int i = 0; i < row; ++i) {
                 maxVal = get(i, 0);
                 for (int j = 0; j < col; ++j) {
-                    if (maxVal < get(i, j)) {
+                    if (std::abs(maxVal) < std::abs(get(i, j))) {
                         maxVal = get(i, j);
                     }
                 }
@@ -425,6 +440,43 @@ public:
 
     }
 
+    template <typename U = T, IF(is_complex<U>)>
+    Matrix<T> Max(int axis) {
+        CheckAxis(axis);
+
+        if (axis == 0) {
+            Matrix<T> maxMatrix(1, col);
+
+            T maxVal = T();
+            for (int i = 0; i < col; ++i) {
+                maxVal = get(0, i);
+                for (int j = 0; j < row; ++j) {
+                    if (std::abs(maxVal) < std::abs(get(j, i))) {
+                        maxVal = get(j, i);
+                    }
+                }
+                maxMatrix.get(0, i) = maxVal;
+            }
+            return maxMatrix;
+        }
+        else if (axis == 1) {
+            Matrix<T> maxMatrix(row, 1);
+            T maxVal = T();
+            for (int i = 0; i < row; ++i) {
+                maxVal = get(i, 0);
+                for (int j = 0; j < col; ++j) {
+                    if (std::abs(maxVal) < std::abs(get(i, j))) {
+                        maxVal = get(i, j);
+                    }
+                }
+                maxMatrix.get(i, 0) = maxVal;
+            }
+            return maxMatrix;
+        }
+
+
+    }
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     T Min() {
         T maxVal = mat_ptr[0];
 
@@ -435,14 +487,26 @@ public:
         }
         return maxVal;
     }
+    template <typename U = T, IF(is_complex<U>)>
+    T Min() {
+        T maxVal = mat_ptr[0];
 
+        for (int i = 0; i < size; ++i) {
+            if (std::abs(maxVal) > std::abs(mat_ptr[i])) {
+                maxVal = mat_ptr[i];
+            }
+        }
+        return maxVal;
+    }
+
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Min(int axis) {
         CheckAxis(axis);
 
         if (axis == 0) {
             Matrix<T> minMatrix(1, col);
 
-            int maxVal = 0;
+            T maxVal = T();
             for (int i = 0; i < col; ++i) {
                 maxVal = get(0, i);
                 for (int j = 0; j < row; ++j) {
@@ -455,7 +519,7 @@ public:
             return minMatrix;
         } else if (axis == 1) {
             Matrix<T> minMatrix(row, 1);
-            int maxVal = 0;
+            T maxVal = T();
             for (int i = 0; i < row; ++i) {
                 maxVal = get(i, 0);
                 for (int j = 0; j < col; ++j) {
@@ -471,16 +535,65 @@ public:
 
     }
 
+    template <typename U = T, IF(is_complex<U>)>
+    Matrix<T> Min(int axis) {
+        CheckAxis(axis);
+
+        if (axis == 0) {
+            Matrix<T> minMatrix(1, col);
+
+            T maxVal = T();
+            for (int i = 0; i < col; ++i) {
+                maxVal = get(0, i);
+                for (int j = 0; j < row; ++j) {
+                    if (std::abs(maxVal) > std::abs(get(j, i))) {
+                        maxVal = get(j, i);
+                    }
+                }
+                minMatrix.get(0, i) = maxVal;
+            }
+            return minMatrix;
+        }
+        else if (axis == 1) {
+            Matrix<T> minMatrix(row, 1);
+            T maxVal = T();
+            for (int i = 0; i < row; ++i) {
+                maxVal = get(i, 0);
+                for (int j = 0; j < col; ++j) {
+                    if (std::abs(maxVal) > std::abs(get(i, j))) {
+                        maxVal = get(i, j);
+                    }
+                }
+                minMatrix.get(i, 0) = maxVal;
+            }
+            return minMatrix;
+        }
+
+
+    }
+    template <typename U = T, IF(is_complex<U>)>
     T Avg() {
         T Avg = T();
 
         for (int i = 0; i < size; ++i) {
             Avg = Avg +  mat_ptr[i];
         }
+        T c (std::real(Avg) / size, std::imag(Avg) / size );
+        return c;
+    }
+   
+    template <typename U = T, IF(is_arithmetic_t<U>)>
+    T Avg() {
+        T Avg = T();
+
+        for (int i = 0; i < size; ++i) {
+            Avg = Avg + mat_ptr[i];
+        }
         Avg = Avg / size;
         return Avg;
     }
-
+    
+    template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Avg(int axis) {
         CheckAxis(axis);
 
@@ -511,6 +624,44 @@ public:
                 }
                 avg = avg / col;
                 AvgMatrix.get(i, 0) = avg;
+            }
+            return AvgMatrix;
+        }
+
+    }
+
+    template <typename U = T, IF(is_complex<U>)>
+    Matrix<T> Avg(int axis) {
+        CheckAxis(axis);
+
+        if (axis == 0) {
+            Matrix<T> AvgMatrix(1, col);
+
+            T avg = T();
+            for (int i = 0; i < col; ++i) {
+                avg = T();
+                for (int j = 0; j < row; ++j) {
+
+                    avg = avg + get(j, i);
+
+                }
+                T c (std::real(avg)/row, std::imag(avg)/row);
+                AvgMatrix.get(0, i) = c;
+            }
+            return AvgMatrix;
+        }
+        else if (axis == 1) {
+            Matrix<T> AvgMatrix(row, 1);
+            T avg = T();
+            for (int i = 0; i < row; ++i) {
+                avg = T();
+                for (int j = 0; j < col; ++j) {
+
+                    avg = avg + get(i, j);
+
+                }
+                T c(std::real(avg) / col, std::imag(avg) / col);
+                AvgMatrix.get(i,0) = c;
             }
             return AvgMatrix;
         }
