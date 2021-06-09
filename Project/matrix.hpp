@@ -228,24 +228,18 @@ public:
         size = row * col;
         mat_ptr = new T[row * col];
     }
-    
-    /**
+
     Matrix(const Matrix<T>& X)
     {
         this->row = X.row;
         this->col = X.col;
-        this->size = this->row * this->col;
+        this->size = X.getSize();
         this->mat_ptr = new T[size];
 
         for (int i = 0; i < row; i++)
-            for (int j = 0; j < col; j++) {
+            for (int j = 0; j < col; j++)
                 get(i, j) = X.get(i, j);
-
-            }
-
-
     }
-    */
     
 
     ~Matrix() {
@@ -316,7 +310,8 @@ private:
 public:
 
     //return pointer to an entry
-    T& get(int row, int col) {
+    T& get(int row, int col) const
+    {
         ValidIndex(row, col);
         return mat_ptr[row * this->col + col];
     }
