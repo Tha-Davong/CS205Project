@@ -19,9 +19,8 @@ int main() {
     m1.set(16, a);
     //m1.print();
     m3.set(12, c);
-    m3.print();
-    m3.Sum(1).print();
-    
+    m1.print();
+    m1.Min(0).print();
    
     
     

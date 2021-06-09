@@ -489,14 +489,14 @@ public:
     }
     template <typename U = T, IF(is_complex<U>)>
     T Min() {
-        T maxVal = mat_ptr[0];
+        T minVal = mat_ptr[0];
 
         for (int i = 0; i < size; ++i) {
-            if (std::abs(maxVal) > std::abs(mat_ptr[i])) {
-                maxVal = mat_ptr[i];
+            if (std::abs(minVal) > std::abs(mat_ptr[i])) {
+                minVal = mat_ptr[i];
             }
         }
-        return maxVal;
+        return minVal;
     }
 
     template <typename U = T, IF(is_arithmetic_t<U>)>
@@ -506,28 +506,28 @@ public:
         if (axis == 0) {
             Matrix<T> minMatrix(1, col);
 
-            T maxVal = T();
+            T minVal = T();
             for (int i = 0; i < col; ++i) {
-                maxVal = get(0, i);
+                minVal = get(0, i);
                 for (int j = 0; j < row; ++j) {
-                    if (maxVal > get(j, i)) {
-                        maxVal = get(j, i);
+                    if (minVal > get(j, i)) {
+                        minVal = get(j, i);
                     }
                 }
-                minMatrix.get(0, i) = maxVal;
+                minMatrix.get(0, i) = minVal;
             }
             return minMatrix;
         } else if (axis == 1) {
             Matrix<T> minMatrix(row, 1);
-            T maxVal = T();
+            T minVal = T();
             for (int i = 0; i < row; ++i) {
-                maxVal = get(i, 0);
+                minVal = get(i, 0);
                 for (int j = 0; j < col; ++j) {
-                    if (maxVal > get(i, j)) {
-                        maxVal = get(i, j);
+                    if (minVal > get(i, j)) {
+                        minVal = get(i, j);
                     }
                 }
-                minMatrix.get(i, 0) = maxVal;
+                minMatrix.get(i, 0) = minVal;
             }
             return minMatrix;
         }
@@ -542,29 +542,29 @@ public:
         if (axis == 0) {
             Matrix<T> minMatrix(1, col);
 
-            T maxVal = T();
+            T minVal = T();
             for (int i = 0; i < col; ++i) {
-                maxVal = get(0, i);
+                minVal = get(0, i);
                 for (int j = 0; j < row; ++j) {
-                    if (std::abs(maxVal) > std::abs(get(j, i))) {
-                        maxVal = get(j, i);
+                    if (std::abs(minVal) > std::abs(get(j, i))) {
+                        minVal = get(j, i);
                     }
                 }
-                minMatrix.get(0, i) = maxVal;
+                minMatrix.get(0, i) = minVal;
             }
             return minMatrix;
         }
         else if (axis == 1) {
             Matrix<T> minMatrix(row, 1);
-            T maxVal = T();
+            T minVal = T();
             for (int i = 0; i < row; ++i) {
-                maxVal = get(i, 0);
+                minVal = get(i, 0);
                 for (int j = 0; j < col; ++j) {
-                    if (std::abs(maxVal) > std::abs(get(i, j))) {
-                        maxVal = get(i, j);
+                    if (std::abs(minVal) > std::abs(get(i, j))) {
+                        minVal = get(i, j);
                     }
                 }
-                minMatrix.get(i, 0) = maxVal;
+                minMatrix.get(i, 0) = minVal;
             }
             return minMatrix;
         }
