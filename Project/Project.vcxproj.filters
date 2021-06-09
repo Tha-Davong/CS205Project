@@ -18,21 +18,9 @@
     <ClInclude Include="matrix.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="complex.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sparseMatrix.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="templateUtil.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="complex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
