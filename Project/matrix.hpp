@@ -332,8 +332,6 @@ public:
         return *this;
     }
 
-
-
     void print() {
         int index = 0;
         for (int i = 0; i < row; ++i) {
@@ -351,29 +349,6 @@ public:
     int getColumnSize() {
         return col;
     }
-    
-    
-<<<<<<< HEAD
-    //return pointer to an entry
-    T& get(int row, int col) const
-    {
-        ValidIndex(row, col);
-        return mat_ptr[row * this->col + col];
-    }
-
-    Matrix<T>& set(int len, T* m) {
-        if (len != this->size) {
-            throw std::length_error("Number of element in array must be the same with the size of matrix");
-        }
-        for (int i = 0; i < len; ++i) {
-            mat_ptr[i] = *m;
-            ++m;
-        }
-        return *this;
-    }
-=======
-   
->>>>>>> 094dadd23124d137e0a7efe822ba2196b41264cb
 
     void reshape(int row, int col) {
         if (row * col != size) {
@@ -1406,7 +1381,6 @@ cv::Mat convertToOpenCV(Matrix<T> &matrix) {
 template <typename T>
 Matrix<T> convertFromOpenCV(cv::Mat &mat) {
     T arr[mat.rows * mat.cols * mat.channels() + 1];
-
     for (int i = 0; i < mat.rows; i++) {
         for (int j = 0; j < mat.cols * mat.channels(); j++) {
             auto *p = mat.ptr(i, j);
@@ -1418,6 +1392,7 @@ Matrix<T> convertFromOpenCV(cv::Mat &mat) {
     return matrix;
 }
 */
+
 
 
 #endif

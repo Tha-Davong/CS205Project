@@ -11,24 +11,17 @@ int main() {
 
     //this is the testing branch
     Matrix<int> m1(4, 4), m2(2, 3);
-<<<<<<< HEAD
-    int a[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+    Matrix<complex<double>> m3(4, 3);
+    int a[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
     int b[] = { 1,2,3,4,5,6};
-
-
-    
-    /*try {
-        //m2.Convolve(m1);
-        m1.set(16, a);
-        m2.set(6, b);
-        m1.print();
-        cout << endl;
-        m1.Slice(0, 2, 1, 2, 0, 1).print();
-        
-    }
-    catch(exception e){
-        cout << e.what();
-    }*/
+    complex < double > c[] = { complex<double>(1,1), complex<double>(2,2), complex<double>(3,3), complex<double>(4,4),
+                               complex<double>(5,5), complex<double>(6,6), complex<double>(7,7), complex<double>(8,8),
+                               complex<double>(9,9), complex<double>(10,10), complex<double>(11,11), complex<double>(12,12) };
+    m1.set(16, a);
+    //m1.print();
+    m3.set(12, c);
+    m1.print();
+    m1.Min(0).print();
 
     //task_3_test
     Matrix<double> M_1(3, 3);
@@ -158,20 +151,5 @@ int main() {
         cout << endl;
     }
 
-    Matrix<complex<double>> m3(4, 3);
-    int a[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
-    int b[] = { 1,2,3,4,5,6};
-    complex < double > c[] = { complex<double>(1,1), complex<double>(2,2), complex<double>(3,3), complex<double>(4,4),
-                        complex<double>(5,5), complex<double>(6,6), complex<double>(7,7), complex<double>(8,8), 
-                            complex<double>(9,9), complex<double>(10,10), complex<double>(11,11), complex<double>(12,12) };
-    m1.set(16, a);
-    //m1.print();
-    m3.set(12, c);
-    m1.print();
-    m1.Min(0).print();
-   
-
     return 0;
-
-
 }
