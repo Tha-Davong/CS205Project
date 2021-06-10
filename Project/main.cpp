@@ -26,6 +26,7 @@ int main() {
     //task_3_test
     Matrix<double> M_1(3, 3);
     Matrix<double> M_2(3, 3);
+    Matrix<std::complex<double>> M_C(2,2);
     Matrix<double> M_Sym(3, 3);
     //vector initialization
     std::vector<double> vector_data_1;
@@ -40,13 +41,14 @@ int main() {
     //Matrix<std::complex> M_3(2, 2);
     double m_1[] = {1.0, 2.0, -1.0, 3.0, 4.0, -7.0, 1.0, -2.0, 3.0};
     double m_2[] = {5.0, -6.0, -4.0, 7.0, 8.0, -2.0, 4.0, 6.0, 5.0};
+    std::complex<double> m_c[] = {std::complex<double>(1,1), std::complex<double>(-3,-2), std::complex<double>(0,-3),std::complex<double>(4,0)};
     double m_sym[] = {5.0, -6.0, -4.0, -6.0, 8.0, -2.0, -4.0, -2.0, 5.0};
     //std::complex m_3[] =
     double scalar_1 = 9.0;
     double scalar_2 = 2.0;
     M_1.set (9, m_1);
     /*
-     *  {   1.0     2.0     3.0
+     *  {   1.0     2.0    -1.0
      *      3.0     4.0    -7.0
      *      1.0    -2.0     3.0     }
      */
@@ -56,6 +58,7 @@ int main() {
      *      7.0     8.0     -2.0
      *      4.0     6.0      5.0     }
      */
+    M_C.set(4, m_c);
     M_Sym.set (9, m_sym);
     Vector<double> v_1_vec(vector_data_1);
     /*
@@ -92,6 +95,7 @@ int main() {
     cout << endl;
     Matrix<double>::Transpose(M_2).print();
     cout << "conjugate" << endl;
+    (Matrix<std::complex<double>>::Conjugate(M_C)).print();
     cout << endl;
 
     cout << "element-wise multiplication" << endl;
@@ -133,6 +137,9 @@ int main() {
 
     cout << "Inverse" << endl;
     (Matrix<double>::Inverse(M_2)).print();
+
+    cout << "Trace" << endl;
+    cout << (Matrix<double>::Trace(M_2)) << endl;
 
     cout << "eigenvalues" << endl;
     (Matrix<double>::Eigenvalues(M_Sym, eigenvalues));
