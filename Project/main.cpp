@@ -4,11 +4,11 @@
 #include "sparseMatrix.hpp"
 #include "templateUtil.h"
 #include <complex>
-//#include <opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 using namespace std;
-//void testConversionSparseMatrix();
-//void testConversionOpenCV();
+void testConversionSparseMatrix();
+void testConversionOpenCV();
 void ConvolutionTest();
 void AvgMinMaxTest();
 void testTemplateUtil();
@@ -70,8 +70,8 @@ int main() {
      */
 
     Vector<double> eigenvector_vec(3);
-   // testConversionSparseMatrix();
-   // testConversionOpenCV();
+    testConversionSparseMatrix();
+    testConversionOpenCV();
     testTemplateUtil();
 
     cout << "testing matrix arithmetic" << endl;
@@ -269,7 +269,7 @@ int main() {
 
     return 0;
 }
-/*
+
 void testConversionSparseMatrix() {
     Matrix<int> sparse(4,3);
     int sp[] = {1,0,0,0,5,0,7,0,9,0,0,0,10,0,12,3};
@@ -297,7 +297,7 @@ void testConversionOpenCV() {
         Matrix<int> tmp2 = convertFromOpenCV<int>(mat);
         tmp2.print();
 }
-*/
+
 void testTemplateUtil() {
         
         cout << "test some template functions" << endl;
