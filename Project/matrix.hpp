@@ -9,7 +9,7 @@
 
 //#include <omp.h>
 #include<string>
-#include <omp.h>
+//#include <omp.h>
 #include <string>
 #include <random>
 
