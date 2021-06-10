@@ -26,6 +26,9 @@ private:
     int size;
 public:
     sparseMatrix(int row, int col) {
+        if (row == 0 || col == 0) {
+            throw std::invalid_argument("row or column cannot be zero!");
+        }
         rows = row;
         cols = col;
         size = row * col;
@@ -34,6 +37,10 @@ public:
     sparseMatrix(Matrix<T> & matrix) {
         int m = matrix.getRowSize();
         int n = matrix.getColumnSize();
+        if (m == 0 || n == 0) {
+            throw std::invalid_argument("row or column cannot be zero!");
+        }
+
         rows = m;
         cols = n;
         int numberOfNonZeroes = 0;
@@ -50,6 +57,9 @@ public:
         }
     }
     sparseMatrix(const sparseMatrix<T> & other) {
+        if (other.rows == 0 || other.cols == 0) {
+            throw std::invalid_argument("row or column cannot be zero!");
+        }
         rows = other.rows;
         cols = other.cols;
         row_index(other.row_index);
