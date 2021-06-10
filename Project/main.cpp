@@ -7,20 +7,20 @@
 #include <opencv2/opencv.hpp>
 
 using namespace std;
-
+void testConversionSparseMatrix();
+void testConversionOpenCV();
+void testTemplateUtil();
 int main() {
 
     //this is the testing branch
     Matrix<int> m1(4, 4), m2(2, 3);
     Matrix<complex<double>> m3(4, 3);
-    Matrix<int> sparse(4,3);
-    int sp[] = {1,0,0,0,5,0,7,0,9,0,0,0,10,0,12,3};
+
     int a[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
     int b[] = { 1,2,3,4,5,6};
     complex < double > c[] = { complex<double>(1,1), complex<double>(2,2), complex<double>(3,3), complex<double>(4,4),
                                complex<double>(5,5), complex<double>(6,6), complex<double>(7,7), complex<double>(8,8),
                                complex<double>(9,9), complex<double>(10,10), complex<double>(11,11), complex<double>(12,12) };
-    sparse.set(12,sp);
     m1.set(16, a);
     //m1.print();
     m3.set(12, c);
@@ -78,33 +78,11 @@ int main() {
      */
 
     Vector<double> eigenvector_vec(3);
+    testConversionSparseMatrix();
+    testConversionOpenCV();
+    testTemplateUtil();
 
     cout << "testing matrix arithmetic" << endl;
-    cout << "init" << endl;
-    sparse.print();
-    cout << "sparseMatrix Representation" << endl;
-    sparseMatrix<int> SP(sparse);
-    SP.print();
-    cout << "sparseMatrix: Conversion Back to Dense" << endl;
-    Matrix<int> tmp = SP.convertToDense(SP);
-    tmp.print();
-    cout << "init" << endl;
-    m1.print();
-    cout << "openCVMatrix: convert To OpenCV" << endl;
-    cv::Mat mat = convertToOpenCV(m1);
-    cout << mat << endl;
-    cout << "openCVMatrix: convert From OpenCV" << endl;
-    Matrix<int> tmp2 = convertFromOpenCV<int>(mat);
-    tmp2.print();
-    cout << "test some template functions" << endl;
-    cout << "is_same_t<float, float > : " << is_same_t<float, float > << endl; // true
-    cout <<  "is_same_t <int, double> : " << is_same_t <int, double> << endl; // false
-    cout << "is_arithmetic_t<std::complex<int>> : " << is_arithmetic_t<std::complex<int>> << endl; //false
-    cout << "is_arithmetic_t<char *> : " << is_arithmetic_t<char *> << endl; // false
-    cout << "is_arithmetic_t<int > : " << is_arithmetic_t<int > << endl; //true
-    cout << "is_complex<int> : " << is_complex<int> << endl; //false
-    cout << "is_complex<std::complex<int>> : " << is_complex<std::complex<int>> << endl; //true
-
 
     cout << "addition" << endl;
     (M_1 + M_2).print();
@@ -257,4 +235,41 @@ int main() {
     }
 
     return 0;
+}
+void testConversionSparseMatrix() {
+    Matrix<int> sparse(4,3);
+    int sp[] = {1,0,0,0,5,0,7,0,9,0,0,0,10,0,12,3};
+    sparse.set(12,sp);
+    cout << "SparseMatrix: init of Matrix" << endl;
+    sparse.print();
+    cout << "sparseMatrix: Representation" << endl;
+    sparseMatrix<int> SP(sparse);
+    SP.print();
+    cout << "sparseMatrix: Conversion Back to Dense" << endl;
+    Matrix<int> tmp = SP.convertToDense(SP);
+    tmp.print();
+
+}
+void testConversionOpenCV() {
+        Matrix<int> m1(4, 4);
+        int a[] = { 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 };
+        m1.set(16, a);
+        cout << "openCVMatrix: init of Matrix" << endl;
+        m1.print();
+        cout << "openCVMatrix: convert To OpenCV" << endl;
+        cv::Mat mat = convertToOpenCV(m1);
+        cout << mat << endl;
+        cout << "openCVMatrix: convert From OpenCV" << endl;
+        Matrix<int> tmp2 = convertFromOpenCV<int>(mat);
+        tmp2.print();
+}
+void testTemplateUtil() {
+        cout << "test some template functions" << endl;
+        cout << "is_same_t<float, float > : " << is_same_t<float, float > << endl; // true
+        cout <<  "is_same_t <int, double> : " << is_same_t <int, double> << endl; // false
+        cout << "is_arithmetic_t<std::complex<int>> : " << is_arithmetic_t<std::complex<int>> << endl; //false
+        cout << "is_arithmetic_t<char *> : " << is_arithmetic_t<char *> << endl; // false
+        cout << "is_arithmetic_t<int > : " << is_arithmetic_t<int > << endl; //true
+        cout << "is_complex<int> : " << is_complex<int> << endl; //false
+        cout << "is_complex<std::complex<int>> : " << is_complex<std::complex<int>> << endl; //true
 }
