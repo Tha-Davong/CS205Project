@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <vector>
 #include<string>
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 
 //#include <omp.h>
 #include<string>
@@ -331,7 +331,7 @@ public:
             for (int i = 0; i < col; ++i) {
                 maxVal = get(0, i);
                 for (int j = 0; j < row; ++j) {
-                    if (std::abs(maxVal) < std::abs(get(j, i))) {
+                    if (maxVal < get(j, i)) {
                         maxVal = get(j, i);
                     }
                 }
@@ -344,7 +344,7 @@ public:
             for (int i = 0; i < row; ++i) {
                 maxVal = get(i, 0);
                 for (int j = 0; j < col; ++j) {
-                    if (std::abs(maxVal) < std::abs(get(i, j))) {
+                    if (maxVal < get(i, j)) {
                         maxVal = get(i, j);
                     }
                 }
@@ -1347,7 +1347,7 @@ private:
     }
 
 };
-
+/**
 template <typename T>
 cv::Mat convertToOpenCV(Matrix<T> &matrix) {
     int type;
@@ -1384,8 +1384,9 @@ Matrix<T> convertFromOpenCV(cv::Mat &mat) {
     matrix.set(mat.rows * mat.cols * mat.channels(), arr);
     return matrix;
 }
+*/
 
 
 
 
-#endif
+#endif;
