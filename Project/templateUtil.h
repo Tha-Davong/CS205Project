@@ -11,7 +11,7 @@
 
 
 template< class T, class U >
-constexpr bool is_same() {return std::is_same<T, U>::value;};
+constexpr bool is_same_t = std::is_same<T, U>::value;
 
 template<typename T>
 struct is_complex_t : public std::false_type {};

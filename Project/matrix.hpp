@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <vector>
 #include<string>
-//#include <opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 //#include <omp.h>
 #include<string>
@@ -17,7 +17,7 @@
 #include <complex>
 #include "templateUtil.h"
 
-template<typename T> 
+template<typename T>
 class Vector
 {
 public:
@@ -99,10 +99,10 @@ public:
             throw std::runtime_error("Math error: Attempted to divide by zero");
 
         Vector<T> quotient_vec(a_vec.getDim());
-        
+
         for (int i = 0; i < a_vec.getDim(); i++)
             quotient_vec.set(i, a_vec.get(i) / scalar);
-       
+
         return quotient_vec;
     }
 
@@ -190,7 +190,7 @@ private:
 
     int dim;
 
-    
+
 };
 
 template<typename T>
@@ -216,7 +216,7 @@ public:
             for (int j = 0; j < col; j++)
                 get(i, j) = X.get(i, j);
     }
-    
+
 
     ~Matrix() {
 
@@ -320,6 +320,10 @@ public:
     int getColumnSize() {
         return col;
     }
+    T *getPtr() {
+        return mat_ptr;
+    }
+
 
     void reshape(int row, int col) {
         if (row * col != size) {
@@ -354,8 +358,8 @@ public:
         return ReturnSlice(rowIndex, colIndex);
 
     }
-    
-    
+
+
     template <typename U = T, IF(is_arithmetic_t<U>)>
     T Max() {
         T maxVal = mat_ptr[0];
@@ -367,7 +371,7 @@ public:
         }
         return maxVal;
     }
-    
+
     template <typename U = T, IF(is_complex<U>)>
     U Max() {
         U maxVal = mat_ptr[0];
@@ -378,7 +382,7 @@ public:
         }
         return maxVal;
     }
-    
+
     template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Max(int axis) {
         CheckAxis(axis);
@@ -556,7 +560,7 @@ public:
         T c (std::real(Avg) / size, std::imag(Avg) / size );
         return c;
     }
-   
+
     template <typename U = T, IF(is_arithmetic_t<U>)>
     T Avg() {
         T Avg = T();
@@ -567,7 +571,7 @@ public:
         Avg = Avg / size;
         return Avg;
     }
-    
+
     template <typename U = T, IF(is_arithmetic_t<U>)>
     Matrix<T> Avg(int axis) {
         CheckAxis(axis);
@@ -579,9 +583,9 @@ public:
             for (int i = 0; i < col; ++i) {
                 avg = 0;
                 for (int j = 0; j < row; ++j) {
-                    
+
                    avg = avg + get(j, i);
-                    
+
                 }
                 avg = avg / row;
                 AvgMatrix.get(0, i) = avg;
@@ -593,9 +597,9 @@ public:
             for (int i = 0; i < row; ++i) {
                 avg = 0;
                 for (int j = 0; j < col; ++j) {
-                    
+
                         avg = avg + get(i, j);
-                   
+
                 }
                 avg = avg / col;
                 AvgMatrix.get(i, 0) = avg;
@@ -732,7 +736,7 @@ public:
 
     static void HaveSameDim(const Matrix<T> &X, const Matrix<T> &Y)
     {
-        if (X.getCol() != Y.getCol() || X.getRow() != Y.getRow()) 
+        if (X.getCol() != Y.getCol() || X.getRow() != Y.getRow())
         {
             throw std::invalid_argument("The matrices don't have the same shape!");
         }
@@ -765,11 +769,11 @@ public:
         for (int k = 0; k < X.getCol(); k++)
         {
             for (int i = k + 1; i < X.getCol(); i++)
-            {   
+            {
                 //element_prime is the entry that mirrors element across the diagonal
                 T element = X.get(i, k);
                 T element_prime = X.get(k, i);
-                
+
                 if (!IsCloseEnough(element, element_prime))
                     return false;
 
@@ -789,16 +793,16 @@ public:
         T zero = static_cast<T>(0.0);
 
         for (int diag_index = 0; diag_index < X.getRow(); diag_index++)
-        {	
+        {
             for (int i = diag_index + 1; i < X.getRow(); i++)
             {
                 if (!IsCloseEnough(X.get(i, diag_index), zero))
                 {
                     return false;
                 }
-            }							
+            }
         }
-        
+
         return true;
     }
 
@@ -871,7 +875,7 @@ public:
         return Difference;
     }
     //scalar multiplication
-    friend Matrix<T> operator* (const Matrix<T> &X, const T &scalar) 
+    friend Matrix<T> operator* (const Matrix<T> &X, const T &scalar)
     {
         Matrix<T> Product(X.getRow(), X.getCol());
 
@@ -881,13 +885,13 @@ public:
             {
                 Product.get(i, j) = X.get(i, j) * scalar;
             }
-           
+
         }
 
         return Product;
     }
 
-    friend Matrix<T> operator* (const T &scalar, const Matrix<T> &X) 
+    friend Matrix<T> operator* (const T &scalar, const Matrix<T> &X)
     {
         Matrix<T> Product(X.getRow(), X.getCol());
 
@@ -903,7 +907,7 @@ public:
     }
 
     //scalar division
-    friend Matrix<T> operator/ (const Matrix<T> &X, const T &scalar) 
+    friend Matrix<T> operator/ (const Matrix<T> &X, const T &scalar)
     {
         if (scalar == static_cast<T>(0.0))
             throw std::runtime_error("Math error: Attempted to divide by zero");
@@ -922,7 +926,7 @@ public:
     }
 
     //transposition
-    static Matrix<T> Transpose(const Matrix<T> &X) 
+    static Matrix<T> Transpose(const Matrix<T> &X)
     {
         Matrix<T> Transposed(X.getCol(), X.getRow());
 
@@ -948,13 +952,13 @@ public:
             {
                 Complex &complex = X.get(i, j);
                 Conjugated.get(i, j) = Complex(complex.getReal(), -complex.getImag());
-            } 
+            }
         }
 
         return Conjugated;
     }
     //element-wise multiplication
-    static Matrix<T> Elementwise_Multiplication(const Matrix<T> &X, const Matrix<T> &Y) 
+    static Matrix<T> Elementwise_Multiplication(const Matrix<T> &X, const Matrix<T> &Y)
     {
         HaveSameDim(X, Y);
         Matrix<T> Product(X.getRow(), X.getCol());
@@ -965,9 +969,9 @@ public:
             {
                 Product.get(i, j) = X.get(i, j) * Y.get(i, j);
             }
-            
+
         }
-        
+
         return Product;
     }
     //matrix-matrix multiplication
@@ -991,7 +995,7 @@ public:
         return Product;
     }
 
-    //matrix-vector multiplication 
+    //matrix-vector multiplication
     friend Vector<T> operator* (const Matrix<T> &X, const Vector<T> a_vec)
     {
         if (X.getCol() != a_vec.getDim())
@@ -1010,7 +1014,7 @@ public:
 
         return product_vec;
     }
-    
+
     friend Vector<T> operator* (const Vector<T> &a_vec, const Matrix<T> &X)
     {
         if (a_vec.getDim() != X.getRow())
@@ -1095,7 +1099,7 @@ public:
         {
             Adj.get(0, 0) = static_cast<T>(1);
             return Adj;
-        } 
+        }
         else if (X.get(0, 0) == static_cast<T>(0.0))
             throw new std::invalid_argument("Zero matrix does not have adjoint matrix");
 
@@ -1106,7 +1110,7 @@ public:
         return Adj;
 
     }
-    //find inverse    
+    //find inverse
     static Matrix<T> Inverse(const Matrix<T> &X)
     {
         IsSquare(X);
@@ -1152,7 +1156,7 @@ public:
             }
             b_vec.set(0, static_cast<T>(1.0));
 
-            //norm of a 
+            //norm of a
             T a_norm = Vector<T>::Norm(a_vec);
 
             //compute sign
@@ -1165,12 +1169,12 @@ public:
 
             //compute n-vector
             Vector<T> n_vec = Vector<T>::Normalize(u_vec);
-            
+
             //convert n-vector to matrix to transpose
             Matrix<T> N_Mat (n - j, 1);
             for (int i = 0; i < n - j; i++)
                 N_Mat.get(i, 0) =  n_vec.get(i);
-            
+
             //transpose n_mat
             Matrix<T> N_Mat_T = Transpose(N_Mat);
 
@@ -1216,7 +1220,7 @@ public:
         R_Mat = R_Mat * A;
 
         R = R_Mat;
-        
+
     }
 
     static void Eigenvalues(const Matrix<T> &A, std::vector<T> &eigenvalues)
@@ -1252,7 +1256,7 @@ public:
             //check if A is close enough to being upper-triangular
             if (IsCloseToUEnough(A_Copied))
                 break;
-            
+
             iteration_cnt++;
         }
 
@@ -1299,7 +1303,7 @@ public:
         Vector<T> v_vec(n);
         for (int i = 0; i < n; i++)
             v_vec.set(i, static_cast<T>(myDistribution(myRandomGenerator)));
-        
+
         int max_iteration = 1e3;
         int iteration_cnt = 0;
         T min_epsilon = static_cast<T>(1e-9);
@@ -1321,25 +1325,25 @@ public:
 
         eigenvector = v_vec;
     }
-    
+
 };
-/*
+
 template <typename T>
 cv::Mat convertToOpenCV(Matrix<T> &matrix) {
     int type;
-    if (std::is_same<T, uint8_t>()) {
+    if (is_same_t<T, uint8_t>) {
         type = 0;
-    } else if (std::is_same<T, int8_t>()) {
+    } else if (is_same_t<T, int8_t>) {
         type = 1;
-    } else if (std::is_same<T, uint16_t>()) {
+    } else if (is_same_t<T, uint16_t>) {
         type = 2;
-    } else if (std::is_same<T, int16_t>()) {
+    } else if (is_same_t<T, int16_t>) {
         type = 3;
-    } else if (std::is_same<T, int32_t>()) {
+    } else if (is_same_t<T, int32_t>) {
         type = 4;
-    } else if (std::is_same<T, float>()) {
+    } else if (is_same_t<T, float>) {
         type = 5;
-    } else if (std::is_same<T, double>()) {
+    } else if (is_same_t<T, double>) {
         type = 6;
     } else {
         type = 7;
@@ -1360,7 +1364,7 @@ Matrix<T> convertFromOpenCV(cv::Mat &mat) {
     matrix.set(mat.rows * mat.cols * mat.channels(), arr);
     return matrix;
 }
-*/
+
 
 
 
